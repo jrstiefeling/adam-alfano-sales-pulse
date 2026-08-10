@@ -369,14 +369,20 @@ details.aitrust .note{
 }
 
 /* ============================================================
-   PORTED CONTROLS — DEMO/REAL, Show Tableau, Metric Cards,
+   PORTED CONTROLS — DEMO/REAL, Why Tableau, Metric Cards,
    info tooltips, collapsible headers, scroll-in animation.
    Ported from reference/pulse-zine-v16.html and restyled to
    this report's desktop zine idiom.
    ============================================================ */
 
 /* --- CONTROLS BAR --- */
-.controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0 0 10px;}
+/* The dashed rule closes the controls region off from the verdict below it. It
+   sits on the bar itself rather than on the conditional caption, so it cannot
+   come and go as the Tableau toggle is flipped. */
+.controls{
+  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  margin:0 0 20px; padding-bottom:12px; border-bottom:2px dashed var(--ink);
+}
 .seg{display:flex; border:3px solid var(--ink); background:var(--paper); flex-shrink:0;}
 .segbtn{
   font-family:var(--font-display);
@@ -402,6 +408,17 @@ details.aitrust .note{
   letter-spacing:1.5px; color:var(--muted); align-self:center;
 }
 #tbBtn.on{background:var(--tab); border-color:var(--tab); color:#fff;}
+/* Caption for the Tableau toggle. Gated on the same data-tableau attribute
+   setTableau() already writes, so it cannot desync from the tint, and it is
+   absent rather than merely invisible until that attribute reads "on" — which
+   also covers first paint, before any script has set the attribute at all. */
+.tbnote{
+  flex:0 0 100%; display:none;
+  font-family:var(--font-body); font-size:11px; line-height:1.6;
+  color:var(--smear); letter-spacing:0.2px; overflow-wrap:break-word;
+}
+body[data-tableau="on"] .tbnote{display:block;}
+.tbnote b{color:var(--tab); font-weight:700;}
 
 /* --- DEMO / REAL BLOCK VISIBILITY --- */
 body[data-mode="demo"] .only-real{display:none !important;}
@@ -442,7 +459,7 @@ body[data-mode="demo"] footer{display:none !important;}
    "Sls_Forecasting_Metrics_Expanded." Figures from the supplied daily-target
    sheet, from Salesforce SOQL (Stage / MFJ / Org62 links), or arithmetically
    derived on this page (gaps, YoY, velocity) are NOT marked. Off by default;
-   every rule below is a no-op until "Show Tableau" is on. */
+   every rule below is a no-op until "Why Tableau" is on. */
 .tbval{color:var(--ink);}
 body[data-tableau="on"] .tbval{color:var(--tab);}
 .tbfill{background:var(--ink);}
@@ -603,8 +620,9 @@ footer b{color:var(--ink);}
     <button class="segbtn" type="button" data-v="real">Real</button>
     <button class="segbtn" type="button" data-v="demo">Demo</button>
   </div>
-  <button class="filterbtn" type="button" id="tbBtn" aria-pressed="false">Show Tableau</button>
+  <button class="filterbtn" type="button" id="tbBtn" aria-pressed="false">Why Tableau</button>
   <button class="filterbtn" type="button" id="cardsBtn">Metric Cards</button>
+  <span class="tbnote">All info provided by Tableau MCP shown in <b>blue</b>. Click the (I) icons to understand why Tableau's Semantic Layer and KPIs are prefered over direct salesforce access</span>
 </div>
 
 <!-- VERDICT -->
@@ -1200,7 +1218,7 @@ document.querySelectorAll('.filterbar').forEach(function(bar){
 /* ============================================================================
    PORTED UI FEATURES — ported from reference/pulse-zine-v16.html:
      1. DEMO / REAL figure toggle      4. Metric Cards visibility modal
-     2. "Show Tableau" provenance tint 5. Collapsible card headers
+     2. "Why Tableau" provenance tint  5. Collapsible card headers
      3. Per-card info tooltips         6. Scroll-in card animation
    Plain ES5, no dependencies, every lookup guarded, whole thing in a try/catch
    so a failure here can never take the report down with it.
@@ -1251,7 +1269,7 @@ try{
     if(pinnedInfo) showTipFor(pinnedInfo);
   }
 
-  /* ---------- 2. SHOW TABLEAU ---------- */
+  /* ---------- 2. WHY TABLEAU ---------- */
   function setTableau(on){
     body.setAttribute('data-tableau', on ? 'on' : 'off');
     try{ sessionStorage.setItem('pulseTableau', on ? 'on' : 'off'); }catch(e){}
