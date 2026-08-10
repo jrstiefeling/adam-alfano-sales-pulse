@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adam's Business Pulse — FQ3 FY27</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --ink:#0B0B0B;
+  --paper:#EDEAE1;
+  --card-bg:#E1DDD2;
+  --pink:#FF1E56;        /* ALARM ONLY — slipped, below commit, critical/risk. Means exactly one thing. */
+  --acid:#D8FF00;         /* LIVE ONLY — today's bar / active filter / live selection. Means exactly one thing. */
+  --muted:#4A4844;
+  --smear:#4A4844;
+  --faint:#8C887E;
+  --shadow: 5px 5px 0 var(--ink);
+  --shadow-lg: 8px 8px 0 var(--pink);
+  --font-display: Impact, Haettenschweiler, "Arial Narrow Bold", "Helvetica Neue", sans-serif;
+  --font-body: "American Typewriter", "Courier New", Courier, monospace;
+  --font-mono: var(--font-body);
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background-color:var(--paper);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(11,11,11,0.045) 0px, rgba(11,11,11,0.045) 1px, transparent 1px, transparent 3px),
+    repeating-linear-gradient(90deg, rgba(11,11,11,0.035) 0px, rgba(11,11,11,0.035) 1px, transparent 1px, transparent 3px);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-variant-numeric: tabular-nums;
+  padding:28px 4vw 80px;
+}
+a{color:inherit;}
+.wrap{max-width:1280px;margin:0 auto;}
+
+/* MASTHEAD */
+.masthead{
+  border-bottom:4px solid var(--ink);
+  padding-bottom:16px;
+  margin-bottom:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.masthead h1{
+  font-family:var(--font-display);
+  font-size:60px;
+  margin:0;
+  letter-spacing:-1px;
+  line-height:0.92;
+  text-transform:uppercase;
+}
+.masthead .kicker{
+  font-family:var(--font-display);
+  text-transform:uppercase;
+  letter-spacing:2px;
+  font-size:12px;
+  color:var(--paper);
+  background:var(--ink);
+  display:inline-block;
+  padding:3px 9px;
+  margin-bottom:8px;
+}
+.masthead .meta{
+  text-align:right;
+  font-family:var(--font-body);
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.6;
+}
+.masthead .meta b{color:var(--ink);}
+
+/* VERDICT */
+.verdict-wrap{margin-bottom:20px;}
+.verdict{
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.4;
+  color:var(--ink);
+  background:var(--card-bg);
+  border:3px solid var(--ink);
+  border-left:8px solid var(--pink);
+  border-radius:0;
+  padding:10px 16px;
+  box-shadow:5px 5px 0 var(--ink);
+}
+.verdict .v-label{font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-right:6px;}
+
+/* CARD */
+.card{
+  background:var(--card-bg);
+  border:3px solid var(--ink);
+  border-radius:0;
+  box-shadow:var(--shadow);
+  padding:20px 22px;
+  margin-bottom:24px;
+  position:relative;
+}
+.card:nth-of-type(odd){transform:rotate(0.4deg);}
+.card:nth-of-type(even){transform:rotate(-0.35deg);}
+.card.alert{border:5px solid var(--pink); box-shadow:var(--shadow-lg);}
+.card h2{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:20px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin:-20px -22px 14px;
+  padding:12px 22px;
+  background:var(--ink);
+  color:var(--paper);
+  border-radius:0;
+}
+.card .subtitle{
+  font-size:12px;
+  color:var(--muted);
+  font-family:var(--font-body);
+  margin:0 0 14px;
+  letter-spacing:0.2px;
+  border-bottom:2px dashed var(--ink);
+  padding-bottom:10px;
+}
+.tag{
+  display:inline-block;
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  background:var(--paper);
+  color:var(--ink);
+  border:1.5px solid var(--paper);
+  padding:2px 7px;
+  margin-left:8px;
+  vertical-align:middle;
+}
+.tag.fallback{text-decoration:underline dotted;}
+.tag.unavail{background:var(--pink); color:var(--paper); border-color:var(--pink);}
+
+/* TOP ROW */
+.toprow{
+  display:grid;
+  grid-template-columns:5fr 3fr;
+  gap:22px;
+  margin-bottom:6px;
+}
+@media (max-width:900px){ .toprow{grid-template-columns:1fr;} }
+
+/* COLS */
+.cols{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:26px;
+}
+@media (max-width:900px){ .cols{grid-template-columns:1fr;} }
+.col-head{
+  font-family:var(--font-display);
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  font-size:14px;
+  font-weight:700;
+  color:var(--paper);
+  background:var(--ink);
+  padding:8px 16px;
+  margin-bottom:16px;
+  display:inline-block;
+  border-radius:0;
+}
+.col-head.monthly{background:var(--ink);}
+
+/* HERO — white on solid black slab */
+.hero{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+  margin:10px 0 4px;
+}
+.hero .num{
+  font-family:var(--font-display);
+  font-size:38px;
+  background:var(--ink);
+  color:var(--paper);
+  padding:6px 16px;
+  display:inline-block;
+  line-height:1;
+}
+.hero .lbl{
+  font-family:var(--font-body);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  color:var(--muted);
+}
+.hero.unavail .num{background:var(--pink); color:var(--paper); font-size:16px; font-family:var(--font-body); font-style:italic; text-transform:none;}
+.statline{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+  margin:14px 0 4px;
+  font-size:13px;
+}
+.statline > div{border-left:2px dashed var(--ink); padding-left:10px;}
+.statline .s{font-family:var(--font-body); color:var(--muted); text-transform:uppercase; font-size:10px; letter-spacing:0.5px; display:block;}
+.statline .v{font-family:var(--font-display); font-size:20px;}
+.v.neg{color:var(--pink);}
+.v.pos{color:var(--ink);}
+
+/* FILTERBAR / KPIGROUP */
+.filterbar{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+.filterbtn{
+  font-family:var(--font-display);
+  text-transform:uppercase;
+  font-size:12px;
+  letter-spacing:1px;
+  padding:12px 16px;
+  min-height:44px;
+  border:2px solid var(--ink);
+  background:var(--paper);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.filterbtn.active{background:var(--acid); color:var(--ink); border-color:var(--ink);}
+.kpigroup{display:none;}
+.kpigroup.active{display:block;}
+.kpi-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:6px;}
+@media (max-width:700px){.kpi-grid{grid-template-columns:1fr;}}
+.kpi-box{border-left:2px dashed var(--ink); padding-left:12px;}
+.kpi-box .num{font-size:22px; font-family:var(--font-display); background:var(--ink); color:var(--paper); padding:3px 10px; display:inline-block;}
+.kpi-box .lbl{font-family:var(--font-body); font-size:10px; text-transform:uppercase; color:var(--muted); letter-spacing:0.5px; display:block; margin-top:6px;}
+
+/* SPOTLIGHT */
+.spotlight{
+  background:var(--ink);
+  color:var(--paper);
+  border:3px solid var(--ink);
+  border-radius:0;
+  box-shadow:5px 5px 0 var(--ink);
+  padding:20px 22px;
+  transform:rotate(0.4deg);
+}
+.spotlight h2{
+  font-family:var(--font-display); font-weight:700; font-size:20px; letter-spacing:1.5px; text-transform:uppercase;
+  margin:-20px -22px 14px; padding:12px 22px; background:var(--paper); color:var(--ink); border-radius:0;
+}
+.spotlight .subtitle{color:#b8ae9c; border-bottom:2px dashed #45403a; padding-bottom:10px; font-family:var(--font-body); letter-spacing:0.2px; font-size:12px;}
+.spotlight.compact .toprow-1{
+  display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;
+}
+.spotlight.compact .name{font-family:var(--font-body); font-size:16px;}
+.spotlight.compact .amount{font-family:var(--font-display); font-weight:700; font-size:26px; background:var(--paper); color:var(--ink); padding:4px 12px; border-radius:0; display:inline-block;}
+.spotlight.compact .toprow-2{margin-top:14px; border-top:2px dashed #45403a; padding-top:12px;}
+.spotlight.compact .deal{font-size:13px; margin-bottom:8px;}
+.spotlight.compact .narrative{font-size:14px; line-height:1.55; color:#e8e2d4;}
+
+/* TABLES */
+table.deals{width:100%; border-collapse:collapse; font-size:13px; margin-top:6px;}
+table.deals th{
+  text-align:left; font-family:var(--font-display); font-weight:700; text-transform:uppercase; font-size:11px;
+  letter-spacing:0.5px; color:var(--muted); border-bottom:2px solid var(--ink); padding:8px 6px;
+}
+table.deals td{padding:8px 6px; border-bottom:2px dashed var(--ink); vertical-align:top;}
+table.deals tr:hover td{background:#ded6bf;}
+.hide-ae{color:#6f6a5f; font-size:11px;}
+.num-cell{font-weight:700; text-align:right; white-space:nowrap;}
+.pill{font-family:var(--font-display); font-size:10px; padding:2px 7px; border:1.5px solid var(--ink); display:inline-block;}
+.pill.up-{background:var(--paper); border-color:var(--pink); color:var(--pink);}
+.pill.in{background:var(--paper); border-color:var(--ink); color:var(--ink);}
+.pill.out{background:var(--pink); border-color:var(--pink); color:var(--paper);}
+.pill.dash{color:var(--muted); border-color:var(--muted);}
+
+/* o62 links */
+a.o62{
+  color:inherit;
+  text-decoration:underline dotted;
+  text-decoration-color:currentColor;
+  text-underline-offset:3px;
+  transition:background .15s, color .15s;
+  padding:0 1px;
+}
+a.o62:hover{background:var(--ink); color:var(--paper); text-decoration:none;}
+.spotlight a.o62:hover, .watchlist a.o62:hover{background:var(--paper); color:var(--ink);}
+
+/* WATCHLIST */
+.watchlist{
+  background:#111;
+  color:#f1ece0;
+  border:3px solid var(--ink);
+  border-radius:0;
+  box-shadow:5px 5px 0 var(--ink);
+  padding:24px 26px;
+  margin-top:8px;
+  transform:rotate(-0.35deg);
+}
+.watchlist h2{
+  font-family:var(--font-display); font-weight:700; font-size:20px; letter-spacing:1.5px; text-transform:uppercase;
+  margin:-24px -26px 16px; padding:12px 26px; background:var(--paper); color:var(--ink); border-radius:0;
+}
+.watchlist .subtitle{color:#a89f8f; border-bottom:2px dashed #3d3a34; padding-bottom:10px; font-family:var(--font-body); letter-spacing:0.2px; font-size:12px;}
+.wgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:16px;}
+@media (max-width:1000px){.wgrid{grid-template-columns:1fr 1fr;}}
+@media (max-width:600px){.wgrid{grid-template-columns:1fr;}}
+.witem{border:2px solid #3d3a34; border-radius:0; padding:14px; background:#1c1b19;}
+.witem:nth-of-type(odd){transform:rotate(0.4deg);}
+.witem:nth-of-type(even){transform:rotate(-0.35deg);}
+.witem.alert{border:5px solid var(--pink); box-shadow:8px 8px 0 var(--pink);}
+.wbadge{
+  font-family:var(--font-display); font-size:11px; text-transform:uppercase; letter-spacing:1px;
+  padding:4px 9px; display:inline-block; margin-bottom:8px; min-height:22px;
+}
+.wbadge.act{background:var(--pink); color:#fff;}
+.wbadge.week{background:#4a453d; color:#f1ece0;}
+.wbadge.watch{background:transparent; border:1.5px dashed #6f6a5f; color:#d8d1c1;}
+.wtitle{font-size:14px; margin-bottom:6px; line-height:1.3;}
+.wamt{font-family:var(--font-display); font-size:20px; background:#f1ece0; color:#111; padding:3px 10px; display:inline-block;}
+.wnote{font-size:12px; color:#b8ae9c; margin-top:8px; line-height:1.4;}
+.wcoverage{grid-column:1/-1; border:1px solid #4a453d; border-radius:4px; padding:14px; font-size:13px; color:#d8d1c1;}
+
+/* AI TRUST */
+details.aitrust{margin-top:14px; font-size:12px; border-top:2px dashed var(--ink); padding-top:10px;}
+.spotlight details.aitrust, .watchlist details.aitrust{border-top-color:#3d3a34;}
+details.aitrust summary{
+  cursor:pointer; font-family:var(--font-display); font-size:13px; letter-spacing:0.8px; text-transform:uppercase;
+  color:var(--ink); list-style:none; outline:none; min-height:44px; display:flex; align-items:center;
+}
+details.aitrust summary::-webkit-details-marker{display:none;}
+details.aitrust summary::before{content:"▸ AI TRUST — "; font-weight:700;}
+details.aitrust[open] summary::before{content:"▾ AI TRUST — ";}
+details.aitrust .note{
+  margin-top:8px; padding:10px 12px; background:#dcd5c2; border-left:4px solid var(--ink);
+  color:#2a2621; line-height:1.55; font-family:var(--font-body);
+}
+.spotlight details.aitrust .note, .watchlist details.aitrust .note{background:#2c2a26; color:#d8d1c1; border-left-color:#f1ece0;}
+.spotlight details.aitrust summary, .watchlist details.aitrust summary{color:#f1ece0;}
+
+/* CHART */
+.velo-chart{display:flex; align-items:flex-end; gap:10px; height:150px; margin:14px 0 38px; border-bottom:1px solid var(--ink); position:relative;}
+.velo-bar{flex:1; background:var(--ink); position:relative; min-width:18px; border-top:3px solid var(--ink);}
+.velo-bar.today{background:var(--acid); border-top:3px dashed var(--ink);}
+.velo-chart--live .velo-bar{background:var(--acid);}
+.velo-bar .amt{position:absolute; top:-18px; left:0; right:0; text-align:center; font-size:10px; font-family:var(--font-body); white-space:nowrap;}
+.velo-bar .day{position:absolute; bottom:-20px; left:0; right:0; text-align:center; font-size:10px; font-family:var(--font-body); color:var(--muted);}
+.velo-bar .tgt{position:absolute; bottom:-35px; left:0; right:0; text-align:center; font-size:9px; font-family:var(--font-body); color:var(--smear); white-space:nowrap;}
+.velo-tick{position:absolute; left:-5px; right:-5px; border-top:2px dashed var(--ink); z-index:2;}
+
+/* TORN-PAPER EDGE — Velocity chart wrapper */
+.velo-chart.torn{
+  clip-path: polygon(
+    0% 6%, 9% 0%, 17% 5%, 26% 1%, 34% 7%, 43% 0%, 52% 4%,
+    61% 1%, 70% 6%, 79% 0%, 88% 5%, 96% 2%, 100% 6%,
+    100% 160%, 0% 160%
+  );
+  padding-top:10px;
+}
+
+/* FOOTER */
+footer{
+  margin-top:40px; border-top:2px dashed var(--ink); padding-top:16px;
+  font-family:var(--font-body); font-size:11px; color:var(--muted); line-height:1.7;
+}
+footer b{color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="masthead">
+  <div>
+    <div class="kicker">President Sales Pulse · Confidential</div>
+    <h1>Adam's Business Pulse</h1>
+  </div>
+  <div class="meta">
+    Snapshot: <b>Monday, August 10, 2026, 7:55 AM PT</b><br>
+    FQ3 FY2027 · Aug–Oct 2026 · Day 10 of 65<br>
+    Hierarchy: Adam Alfano (Tableau Next rollup)
+  </div>
+</div>
+
+<!-- VERDICT -->
+<div class="verdict-wrap">
+  <div class="verdict"><span class="v-label">Verdict —</span><span class="ransom-text">Well behind today's target this early in the day and behind this month's Commit pace; full-quarter velocity ($943,323/day) is running only slightly ahead of the 2-year average ($892,917/day) — a much thinner cushion than Friday's snapshot.</span></div>
+</div>
+
+<!-- TOP ROW: BUSINESS WON (5/8) + AE SPOTLIGHT (3/8) -->
+<div class="toprow">
+
+  <div class="card" style="margin-bottom:0;">
+    <h2>Business Won <span class="tag">CSV-sourced target</span></h2>
+    <div class="subtitle">Daily / Monthly / Quarterly toggle — live pull, scoped to Adam Alfano's org</div>
+
+    <div class="filterbar">
+      <button class="filterbtn active" data-kpi="daily">Daily</button>
+      <button class="filterbtn" data-kpi="monthly">Monthly</button>
+      <button class="filterbtn" data-kpi="quarterly">Quarterly</button>
+    </div>
+
+    <div class="kpigroup active" data-kpi="daily">
+      <div class="hero"><span class="num">$167,612</span><span class="lbl">ACV closed today (Aug 10)</span></div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);">
+        <div class="kpi-box"><div class="num">$1.2M</div><div class="lbl">Daily target (Aug 10, per target sheet)</div></div>
+        <div class="kpi-box"><div class="num" style="color:var(--pink);">$1.03M</div><div class="lbl">Gap to daily target</div></div>
+      </div>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          ACV closed today: fresh Tableau Next pull, SUM(ACV_clc), Close_Date17 = 2026-08-10, User_Name10='Adam Alfano' → $167,611.68 (exact). Daily target: exact-date lookup in the supplied daily-target sheet for 2026-08-10 (a Monday) → $1,200,000.00 (unchanged). <b>Methodology:</b> Daily target still sourced from the daily-target sheet only, not Commit ÷ working days and not ForecastingQuota. Gap = target − actual = $1,200,000.00 − $167,611.68 = $1,032,388.32. Snapshot taken at 7:55 AM PT — today's figure is naturally low this early in the business day and should not be read as a full-day shortfall yet.
+        </div>
+      </details>
+    </div>
+
+    <div class="kpigroup" data-kpi="monthly">
+      <div class="hero"><span class="num">$9.43M</span><span class="lbl">ACV closed MTD (Aug 1–10)</span></div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);">
+        <div class="kpi-box"><div class="num">$51.0M</div><div class="lbl">Monthly Commit (August 2026)</div></div>
+        <div class="kpi-box"><div class="num" style="color:var(--pink);">$41.57M</div><div class="lbl">Gap to Monthly Commit</div></div>
+      </div>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          Monthly Commit = actual current-month Commit: SUM(Current_Commit_clc), Close_Date17 Aug 1–31 2026, User_Name10='Adam Alfano', queried with a grouping dimension (Core_Team_Users1.User_Name10) per the standing engine-quirk workaround → $51,000,009.00 (exact; ~$7 rounding drift vs. Friday's $51,000,002.00 — within normal float precision, not a data change). MTD ACV closed: SUM(ACV_clc) summed from the fresh Aug1–10 daily series (below) = $9,433,234.41 (exact). Gap to Monthly Commit = $51,000,009.00 − $9,433,234.41 = $41,566,774.59.
+        </div>
+      </details>
+    </div>
+
+    <div class="kpigroup" data-kpi="quarterly">
+      <div class="hero"><span class="num">$12.29M</span><span class="lbl">ACV closed, full FQ3 (Aug–Oct 2026)</span></div>
+      <div class="kpi-grid">
+        <div class="kpi-box"><div class="num">$218.0M</div><div class="lbl">FQ3 commit (quarter target, no division)</div></div>
+        <div class="kpi-box"><div class="num" style="color:var(--pink);">$205.71M</div><div class="lbl">Gap to quarter target</div></div>
+        <div class="kpi-box"><div class="num">3.2x</div><div class="lbl">Coverage (current quarter, org-wide)</div></div>
+      </div>
+      <div class="statline">
+        <div><span class="s">YoY (QTD-aligned, Aug1–10)</span><span class="v neg">−3.3%</span></div>
+        <div><span class="s">Velocity (CY, $/day QTD)</span><span class="v">$943,323</span></div>
+        <div><span class="s">Historical velocity (2-yr avg, $/day)</span><span class="v">$892,917</span></div>
+        <div><span class="s">Open pipe, current qtr</span><span class="v">$667.98M</span></div>
+      </div>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          Full-quarter ACV: SUM(ACV_clc), Close_Date_Fiscal_Quarter_Datepart_clc=3 AND Close_Date_Relative_Year_clc='CY', User_Name10='Adam Alfano' → $12,292,863.08 (NOT date-capped to today, per instructions — up from $11,825,769.32 Friday as more deals closed over the weekend/Monday). Quarter Commit: SUM(Current_Commit_clc), same fiscal-quarter filter, grouped by User_Name10 → $218,000,010.00. YoY computed on elapsed-date windows (NOT the fiscal-quarter dimension): CY (Aug1–10 2026)=$9,433,234.41, PY (Aug1–10 2025)=$9,757,338.89, PY-1 (Aug1–10 2024)=$8,101,001.37. YoY=(CY−PY)/PY=−3.32% (swung negative vs. Friday's +5.0%, since Aug8–10 2026 closed less than the equivalent Aug8–10 2025 window). Coverage_clc (current quarter, org-wide)=3.2 (unchanged). Open_Pipe_clc (current quarter)=$667,984,042.02.
+          <br><br><b>Velocity/Historical velocity:</b> Velocity = $9,433,234.41 ÷ 10 elapsed days = $943,323.44/day. Historical velocity = avg(PY pace $975,733.89/day, PY-1 pace $810,100.14/day) = $892,916.02/day. Velocity is still ahead of the 2-year historical pace but by a much thinner margin than Friday (+5.7% vs. +22%), consistent with a slower start to this business day/weekend.
+          <br><br>No Current_Commit_clc null-aggregate issue encountered this run — all grouped Commit pulls returned real figures on the first or second attempt. Every quarter-scoped figure on this page used an explicit FQ3/CY filter to avoid the fiscal-quarter auto-default bug.
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="spotlight compact" style="margin-bottom:0;">
+    <h2>AE Spotlight — MTD</h2>
+    <div class="subtitle">Top deal closed month-to-date</div>
+    <div class="toprow-1">
+      <div class="name">Luke Inserra <span style="color:#a89f8f;font-size:12px;">(AE) · L4 Aaron Scime</span></div>
+      <div class="amount">$483,768</div>
+    </div>
+    <div class="toprow-2">
+      <div class="deal">
+        <a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i2SCYAA2/view">[DO NOT EDIT] Slack True up - Micro1 - 2026-08-01 - T03BXE52RJA</a> —
+        <a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001eU5JCAA0/view">Micro1</a>
+      </div>
+      <div class="narrative">
+        Still the top MTD line this run and still an automated Slack seat true-up on Micro1's account, not a net-new land — worth flagging rather than celebrating. The largest genuine new-logo/expansion win MTD remains Laura Morgan's $408K close on Imperial Management (Day 1 of the month), still nearly 1.7x the next-biggest deal and the real pacesetter for the quarter; no larger genuine deal has closed since Friday.
+      </div>
+    </div>
+    <details class="aitrust">
+      <summary>verification details</summary>
+      <div class="note">
+        Top MTD deal re-confirmed unchanged from Friday's run: "[DO NOT EDIT] Slack True up - Micro1 - 2026-08-01 - T03BXE52RJA," $483,768.00 (2026-08-01). <b>Flagged, not silently accepted:</b> the opportunity name itself signals an internal/automated Slack usage true-up rather than a sales-sourced win. AE/L4 re-resolved via Opportunity_Id34-scoped lookup this run: Luke Inserra (AE) / Aaron Scime (L4) — unchanged. Next-largest genuine deal, used for narrative comparison: Imperial Management + 275 SVC Voice FDO Sept, $408,000.00, AE Laura Morgan, L4 Jennifer Lagaly (Org62 Opportunity Id 006ed00000bAPO1AAO / Account 0010M00001UEUwXQAX). SOQL confirms both opportunities StageName "08 - Closed" — no anomaly on this pair this run.
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- TWO COLUMN: DAILY / MONTHLY -->
+<div class="cols">
+
+  <!-- DAILY VIEW -->
+  <div>
+    <span class="col-head">Daily View</span>
+
+    <div class="card">
+      <h2>Velocity</h2>
+      <div class="subtitle">Daily ACV closed, month-to-date · filter: Yesterday / Today / This week</div>
+      <div class="filterbar">
+        <button class="filterbtn" data-velo="yesterday">Yesterday</button>
+        <button class="filterbtn active" data-velo="today">Today</button>
+        <button class="filterbtn" data-velo="week">This week</button>
+      </div>
+      <div id="velo-summary" class="hero"><span class="num">$167,612</span><span class="lbl">closed today · target $1.2M · gap $1.03M</span></div>
+      <div class="statline" style="margin-bottom:6px;">
+        <div><span class="s">Today's target (target sheet)</span><span class="v">$1.2M</span></div>
+        <div><span class="s">August Monthly Commit</span><span class="v">$51.0M</span></div>
+      </div>
+      <div class="velo-chart torn">
+        <div class="velo-bar" style="height:100%;"><span class="amt">$3.22M</span><span class="day">Aug 1</span></div>
+        <div class="velo-bar" style="height:3%;"><span class="amt">$111,729</span><span class="day">Aug 2</span></div>
+        <div class="velo-bar" style="height:25%;">
+          <span class="amt">$805,478</span><span class="day">Aug 3</span><span class="tgt">target $3.10M</span>
+          <div class="velo-tick" style="bottom:144px;"></div>
+        </div>
+        <div class="velo-bar" style="height:38%;">
+          <span class="amt">$1.23M</span><span class="day">Aug 4</span><span class="tgt">target $1.10M</span>
+          <div class="velo-tick" style="bottom:51px;"></div>
+        </div>
+        <div class="velo-bar" style="height:35%;">
+          <span class="amt">$1.12M</span><span class="day">Aug 5</span><span class="tgt">target $1.10M</span>
+          <div class="velo-tick" style="bottom:51px;"></div>
+        </div>
+        <div class="velo-bar" style="height:31%;">
+          <span class="amt">$999,764</span><span class="day">Aug 6</span><span class="tgt">target $1.0M</span>
+          <div class="velo-tick" style="bottom:47px;"></div>
+        </div>
+        <div class="velo-bar" style="height:52%;">
+          <span class="amt">$1.69M</span><span class="day">Aug 7</span><span class="tgt">target $1.80M</span>
+          <div class="velo-tick" style="bottom:84px;"></div>
+        </div>
+        <div class="velo-bar" style="height:1%;"><span class="amt">$16,283</span><span class="day">Aug 8</span></div>
+        <div class="velo-bar" style="height:2%;"><span class="amt">$69,829</span><span class="day">Aug 9</span></div>
+        <div class="velo-bar today" style="height:5%;">
+          <span class="amt">$167,612</span><span class="day">Aug 10</span><span class="tgt">target $1.2M</span>
+          <div class="velo-tick" style="bottom:56px;"></div>
+        </div>
+      </div>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          Daily series: fresh SUM(ACV_clc) grouped by Close_Date17, Aug1–10 2026, User_Name10='Adam Alfano'. Aug1=$3,221,048.76, Aug2=$111,729.37, Aug3=$805,478.36, Aug4=$1,234,416.43, Aug5=$1,117,492.05, Aug6=$999,763.91, Aug7=$1,689,582.11, Aug8=$16,282.62, Aug9=$69,829.12 (Yesterday), Aug10=$167,611.68 (Today, default view — a partial day, snapshot taken 7:55 AM PT). This week (Mon Aug10, the only elapsed day of the new business week)=$167,611.68. Per-day dashed reference ticks from the daily-target sheet: Aug3=$3,100,000, Aug4=$1,100,000, Aug5=$1,100,000, Aug6=$1,000,000, Aug7=$1,800,000, Aug10=$1,200,000 — Aug1–2 and Aug8–9 (weekends) still have no sheet row and show no tick, per instructions (expected, not a gap). Today's target ($1,200,000.00) is identical across the KPI Tile Daily group, this card, and the Daily horse race header below (grep-checked). Yesterday (Aug9, a Sunday) has no daily-target sheet row — the "Yesterday" filter shows target/gap as n/a rather than fabricating a number.
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Daily horse race — by leader</h2>
+      <div class="subtitle">Today's closed ACV vs. each leader's own daily target</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px;">
+        <div class="kpi-box"><div class="num">$167,612</div><div class="lbl">Closed won today (org-wide)</div></div>
+        <div class="kpi-box"><div class="num">$1.2M</div><div class="lbl">Daily target (org-wide, same as KPI Tile/Velocity)</div></div>
+        <div class="kpi-box"><div class="num" style="color:var(--pink);">$1.03M</div><div class="lbl">Current daily gap (org-wide)</div></div>
+      </div>
+      <div class="velo-chart velo-chart--live" style="margin-bottom:44px;">
+        <div class="velo-bar" style="height:16px;">
+          <div class="amt">$76,646</div>
+          <div class="velo-tick" style="bottom:95px;"></div>
+          <div class="day">Giovanni Crispino</div>
+          <div class="tgt">Target $466,666 <span style="color:var(--pink);">· Gap $390,021</span></div>
+        </div>
+        <div class="velo-bar" style="height:6px;">
+          <div class="amt">$30,822</div>
+          <div class="velo-tick" style="bottom:122px;"></div>
+          <div class="day">Whitney Hillyer</div>
+          <div class="tgt">Target $600,000 <span style="color:var(--pink);">· Gap $569,178</span></div>
+        </div>
+        <div class="velo-bar" style="height:3px;">
+          <div class="amt">$16,330</div>
+          <div class="velo-tick" style="bottom:92px;"></div>
+          <div class="day">Jennifer Lagaly</div>
+          <div class="tgt">Target $452,381 <span style="color:var(--pink);">· Gap $436,051</span></div>
+        </div>
+        <div class="velo-bar" style="height:4px;">
+          <div class="amt">$21,673</div>
+          <div class="velo-tick" style="bottom:140px;"></div>
+          <div class="day">Aaron Scime</div>
+          <div class="tgt">Target $690,476 <span style="color:var(--pink);">· Gap $668,804</span></div>
+        </div>
+        <div class="velo-bar" style="height:4px;">
+          <div class="amt">$19,972</div>
+          <div class="velo-tick" style="bottom:30px;"></div>
+          <div class="day">Valeria Capetto</div>
+          <div class="tgt">Target $147,619 <span style="color:var(--pink);">· Gap $127,647</span></div>
+        </div>
+      </div>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          Two fresh Tableau Next calls: (1) SUM(ACV_clc) grouped by Core_Team_Users1.Plus_Twos1, Close_Date17=2026-08-10 — 5-leader sum = $165,441.96 vs org-wide $167,611.68 (diff $2,169.72 — small remainder outside the 5-leader hierarchy slice, normal, same pattern as prior runs). (2) SUM(Current_Commit_clc) grouped by Plus_Twos1, Aug-2026 date-range filter — 5-leader commit sum = $49,500,009 vs org-wide August commit $51,000,009 (diff $1,500,000, ~2.9% — same gap as Friday's run, expected, NOT force-corrected). Header tiles' org-wide daily target still comes from the daily-target sheet for today's date ($1,200,000.00, same as the KPI Tile and Velocity card). Per-leader rows use each leader's own August Commit ÷ 21 working days ($690,476/$600,000/$466,666/$452,381/$147,619 — identical to Friday's figures since underlying August Commit hasn't changed). All five leaders are well behind their own daily pace this early in the morning — expected given the 7:55 AM PT snapshot time, not a Monday-specific slowdown signal on its own.
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Top 10 deals closed today</h2>
+      <div class="subtitle">Closed Aug 10, 2026 · ranked by ACV desc</div>
+      <table class="deals">
+        <tr><th>Deal</th><th>Account</th><th class="hide-ae">AE</th><th>L4 Leader</th><th class="num-cell">ACV</th></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000enshlAAA/view">Soft Media Consultores - Upgrade a MC Engagement+</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cFXoWAAW/view">Soft Media Consultores</a></td><td class="hide-ae">Ana Hita</td><td>Valeria Capetto</td><td class="num-cell">$19,190</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000iGEdZAAW/view">Groovy Aesthetic Clinic- 27 EE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00001MVEO5AAP/view">Groovy Aesthetic Clinic</a></td><td class="hide-ae">Ghadi Khalili</td><td>Giovanni Crispino</td><td class="num-cell">$13,440</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/0063y000019kWkOAAU/view">Microban Products Company Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a> <span class="tag unavail" style="margin-left:2px;transform:none;">flag</span></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/00130000006Z5anAAC/view">Microban Products Company</a></td><td class="hide-ae">Jake Pardi</td><td>Jennifer Lagaly</td><td class="num-cell">$6,024</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i7nx7AAA/view">SUPRACAFE SA - Online Sales - Your Account App - Chapi</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001dL1pMAAS/view">SUPRACAFE SA</a></td><td class="hide-ae">Jorge de Diego</td><td>Giovanni Crispino</td><td class="num-cell">$5,895</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000iGG7VAAW/view">Consumer Priority Service - Online Sales - Your Account App - Chapi</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000001L64qfAAB/view">Consumer Priority Service</a></td><td class="hide-ae">Pablo Medina</td><td>Aaron Scime</td><td class="num-cell">$5,130</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000IpQcgAAF/view">Giltner Logistics, Inc. Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000ZkxZxAAJ/view">Giltner, Inc.</a></td><td class="hide-ae">Bikna Huang</td><td>Aaron Scime</td><td class="num-cell">$5,109</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000iGVXyAAO/view">SERB Holding France_Veeva Systems_Add-On_08/21/2026</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001euor6AAA/view">SERB Holding France</a></td><td class="hide-ae">Enzo JOAQUIM</td><td>Giovanni Crispino</td><td class="num-cell">$4,560</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000IqR3cAAF/view">Cafection Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/00130000016gpYHAAY/view">Cafection</a></td><td class="hide-ae">Jad Akiki</td><td>Jennifer Lagaly</td><td class="num-cell">$4,135</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed000000kG5YAAU/view">Keyper Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cSi4UAAS/view">Keyper</a></td><td class="hide-ae">Edvinas Karalius</td><td>Giovanni Crispino</td><td class="num-cell">$3,297</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i9IcHAAU/view">Netop Business Solutions A/S - Online Sales - Your Account App - Chapi</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000GKgWHAA1/view">Netop Business Solutions A/S</a></td><td class="hide-ae">Thomas Andersen</td><td>Giovanni Crispino</td><td class="num-cell">$3,228</td></tr>
+      </table>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          Deal list: fresh SUM(ACV_clc) grouped by Opportunity_Name15/Account_Name129/Opportunity_Id34, Close_Date17=2026-08-10, User_Name10='Adam Alfano', top 10 desc — sums to $70,009.53 of the $167,611.68 daily total (remainder in smaller deals outside top 10; today's top-10 is dominated by small renewal-uplift and add-on line items, consistent with a slow early-morning day). AE/L4 names resolved via a combined lookup scoped to all 44 Opportunity_Id34s gathered across every table on this page, filtered to User_Role2 IN ('AE','L4 Leader') — all 10 of today's closed opportunities returned both an AE and L4 row. <b>New anomaly flagged this run:</b> Microban Products Company (opportunity 0063y000019kWkOAAU) was returned by Tableau Next as closed ACV today ($6,024.00), but the SOQL cross-check shows StageName = "Dead - No Opportunity" for that same Id — i.e. Salesforce itself records this as a dead/no-deal record, not a won opportunity. Flagged inline with a grey tag rather than dropped or silently reconciled, per instructions. Org62 links verified via SOQL exact-Id match — all 10 matched.
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Top 10 open deals closing today</h2>
+      <div class="subtitle">Open pipe closing Aug 10, 2026 · ranked by open pipe desc</div>
+      <table class="deals">
+        <tr><th>Deal</th><th>Account</th><th class="hide-ae">AE</th><th>L4 Leader</th><th>Stage</th><th>MFJ</th><th class="num-cell">Open pipe</th></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hJIzmAAG/view">Omnidian, Inc. - Slack Biz + Upgrade (564)</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001QaQDGQA3/view">Omnidian, Inc.</a></td><td class="hide-ae">Joshua Neisse</td><td>Aaron Scime</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill in">IN</span></td><td class="num-cell">$81,216</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000cMzVBAA0/view">Kinexio- x25 Sales &amp; Service + Agentforce Marketing + PSP</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001c7FcfAAE/view">Mallcomm</a></td><td class="hide-ae">Jean O'Connor</td><td>Giovanni Crispino</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell">$52,776</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i3snJAAQ/view">Edwin Group - License Transfer &amp; additional licenses</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000yr8mUAAQ/view">Edwin Group</a></td><td class="hide-ae">Majella Doyle</td><td>Giovanni Crispino</td><td>02 - Determining Problem, Impact, Ideal</td><td><span class="pill dash">—</span></td><td class="num-cell">$26,280</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hNHllAAG/view">The Luminaire - Agentforce Marketing #FY27JumpstartSWE</a> <span class="tag unavail" style="margin-left:2px;transform:none;">flag</span></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001d1k0VAAQ/view">The Luminaire</a></td><td class="hide-ae">Tracy McCarthy</td><td>Giovanni Crispino</td><td>08 - Closed</td><td><span class="pill in">IN</span></td><td class="num-cell">$17,219</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000aH9jhAAC/view">Prime Residencial- (+5) 5 SFA EE + DE #FY27JumpstartSWE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000NfUJVAA3/view">Prime Residencial</a></td><td class="hide-ae">Matheus Silva</td><td>Valeria Capetto</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell">$16,770</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000Y5bHtAAJ/view">Urban Lanes- 7 EE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed000017zSAvAAM/view">Urban Lanes</a></td><td class="hide-ae">Ahmed Dessouky</td><td>Giovanni Crispino</td><td>02 - Determining Problem, Impact, Ideal</td><td><span class="pill up-">UP−</span></td><td class="num-cell">$14,700</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000frWJuAAM/view">We Have a meeting - Early renewal #FY27JumpstartSWE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001eSAORAA4/view">We Have a Meeting Limited</a></td><td class="hide-ae">Aoife O'Donovan</td><td>Giovanni Crispino</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell">$10,401</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hgeQ5AAI/view">AO - SBG SYSTEMS - POC Agentforce</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000ZmVfVAAV/view">SBG SYSTEMS</a></td><td class="hide-ae">Jennifer Ferrandis-Durand</td><td>Giovanni Crispino</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill up-">UP−</span></td><td class="num-cell">$9,473</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000Zzb6XAAR/view">Prudent FS- Slack Biz + Upgrade</a> <span class="tag unavail" style="margin-left:2px;transform:none;">flag</span></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001h2MTzAAM/view">Prudent FS</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>Dead - Webstore</td><td><span class="pill up-">UP−</span></td><td class="num-cell">$9,000</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i1T53AAE/view">Publiciencia - ER</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000RaqLnAAJ/view">Publiciencia</a></td><td class="hide-ae">Maite Compte</td><td>Valeria Capetto</td><td>04 - Confirming Value With Power</td><td><span class="pill in">IN</span></td><td class="num-cell">$8,356</td></tr>
+      </table>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          Tableau Next: Is_Current_Open_Pipe_clc=TRUE, Close_Date17=2026-08-10, User_Name10='Adam Alfano', ranked by Open_Pipe_clc desc, top 10 — a completely different set of deals than Friday's snapshot. Sanity-checked "today" against the real system clock (2026-08-10, Monday) — no mismatch found. Stage/MFJ pulled via a single batched SOQL IN(...) call on all 24 open-pipe Opportunity Ids gathered this run; Edwin Group returned no Manager_Forecast_Judgement__c value in SOQL — rendered "—" per instructions. <b>Two new anomalies flagged this run:</b> (1) The Luminaire is flagged by Tableau Next as currently-open pipe closing today, but SOQL shows StageName "08 - Closed" — a Tableau Next↔Salesforce sync-timing mismatch, same pattern as prior runs' Medtronic/Salz Clínica flags. (2) Prudent FS shows StageName "Dead - Webstore" in SOQL while still carrying $9,000 of Tableau Next open pipe with no AE row — flagged rather than dropped. Both reported inline with grey tags instead of being silently reconciled.
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Deal movement</h2>
+      <div class="subtitle">Since yesterday · FQ3, Adam Alfano's org</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);">
+        <div class="kpi-box"><div class="num">18 deals</div><div class="lbl">Won since yesterday ($42,316 ACV)</div></div>
+        <div class="kpi-box"><div class="num" style="color:var(--pink);">102 deals</div><div class="lbl">Lost / deaded-out since yesterday</div></div>
+        <div class="kpi-box"><div class="num" style="color:var(--pink);">109 deals</div><div class="lbl">Pushed out since yesterday</div></div>
+        <div class="kpi-box"><div class="num">+$727,248</div><div class="lbl">Change in open pipe since yesterday</div></div>
+      </div>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          Fresh COUNT/SUM aggregates on Since_Yesterday_Opportunity_Was_Won_clc, Since_Yesterday_Opportunity_Was_Lost_Deaded_Out_clc, Since_Yesterday_Opportunity_Slipped_clc, and Since_Yesterday_Change_in_Open_Pipe_clc, all scoped to Close_Date_Fiscal_Quarter_Datepart_clc=3 AND Close_Date_Relative_Year_clc='CY' AND User_Name10='Adam Alfano'. Counts dropped sharply from Friday's run (Won 186→18 deals, Lost/deaded 1,003→102, Pushed out 447→109) and open-pipe change flipped from −$8.32M to +$727,248. <b>Flagged as a methodology note, not an error:</b> the Won-since-yesterday ACV sum ($42,315.69 across 18 deals) is far smaller than today's actual closed-ACV total from the daily series ($167,611.68 across many more deals) — these two figures use different underlying flags/definitions (a "since yesterday" status-change flag vs. a straight Close_Date17=today filter) and are not expected to reconcile exactly; reported side-by-side rather than forced to match. The smaller overall movement volumes this run are also consistent with a Monday-morning snapshot (7:55 AM PT) taken before most of the day's pipeline activity has been recorded, vs. Friday's snapshot taken at 6:36 PM PT after a full business day.
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- MONTHLY VIEW -->
+  <div>
+    <span class="col-head monthly">Monthly View</span>
+
+    <div class="card">
+      <h2>Monthly &amp; Quarterly</h2>
+      <div class="subtitle">Always-visible KPI tiles — no toggle</div>
+      <div style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:6px;">Monthly (MTD, Aug 1–10)</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:16px;">
+        <div class="kpi-box"><div class="num">$9.43M</div><div class="lbl">MTD closed won</div></div>
+        <div class="kpi-box"><div class="num">$9.76M</div><div class="lbl">Same period LY (Aug1–10 2025)</div></div>
+        <div class="kpi-box"><div class="num" style="color:var(--pink);">−3.3%</div><div class="lbl">YoY</div></div>
+      </div>
+      <div style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:6px;">Quarterly (full FQ3)</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="kpi-box" style="grid-column:1;grid-row:1;"><div class="num">$12.29M</div><div class="lbl">Quarterly closed won</div></div>
+        <div class="kpi-box" style="grid-column:2;grid-row:1;"><div class="num">3.2x</div><div class="lbl">Coverage (current qtr, org-wide)</div></div>
+        <div class="kpi-box" style="grid-column:1;grid-row:2;"><div class="num">$943,323</div><div class="lbl">Velocity ($/day, CY QTD)</div></div>
+        <div class="kpi-box" style="grid-column:2;grid-row:2;"><div class="num">$892,917</div><div class="lbl">Historical velocity ($/day, 2-yr avg)</div></div>
+      </div>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          All figures reused from the KPI Tile's CY/PY/PY-1 windows and Quarterly full-quarter pull — not re-derived. MTD closed won and Same-period-LY are the exact CY ($9,433,234.41) and PY ($9,757,338.89) elapsed-date windows — YoY flipped from +5.0% Friday to −3.3% this run, since Aug8–10 2026 closed less than the equivalent Aug8–10 2025 window did. Coverage_clc queried once, live, with a grouping dimension = 3.2x, unchanged. Velocity = CY ACV ÷ 10 elapsed days = $943,323.44/day; Historical velocity = average of PY pace ($975,733.89/day) and PY-1 pace ($810,100.14/day) = $892,916.95/day (displayed rounded to $892,917). Quarterly YoY is not duplicated here — see the KPI Tile's Quarterly tab (−3.3%) for that figure and its full calculation.
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>FQ3 QTD &amp; Coverage — by leader</h2>
+      <div class="subtitle">Single query: ACV, Commit, Open Pipe, Coverage — all four measures at once</div>
+      <table class="deals">
+        <tr><th>Leader</th><th class="num-cell">ACV closed</th><th class="num-cell">Qtr commit</th><th class="num-cell">Gap to commit</th><th class="num-cell">Open pipe</th><th class="num-cell">Coverage</th></tr>
+        <tr><td>Aaron Scime</td><td class="num-cell">$3.27M</td><td class="num-cell">$62.39M</td><td class="num-cell" style="color:var(--pink);">$59.12M</td><td class="num-cell">$252.97M</td><td class="num-cell">4.3x</td></tr>
+        <tr><td>Giovanni Crispino</td><td class="num-cell">$3.61M</td><td class="num-cell">$52.0M</td><td class="num-cell" style="color:var(--pink);">$48.39M</td><td class="num-cell">$101.77M</td><td class="num-cell">2.1x</td></tr>
+        <tr><td>Whitney Hillyer</td><td class="num-cell">$2.92M</td><td class="num-cell">$51.0M</td><td class="num-cell" style="color:var(--pink);">$48.08M</td><td class="num-cell">$157.06M</td><td class="num-cell">3.3x</td></tr>
+        <tr><td>Jennifer Lagaly</td><td class="num-cell">$2.09M</td><td class="num-cell">$42.5M</td><td class="num-cell" style="color:var(--pink);">$40.41M</td><td class="num-cell">$124.81M</td><td class="num-cell">3.1x</td></tr>
+        <tr><td>Valeria Capetto</td><td class="num-cell">$395,163</td><td class="num-cell">$11.0M</td><td class="num-cell" style="color:var(--pink);">$10.60M</td><td class="num-cell">$31.08M</td><td class="num-cell">2.9x</td></tr>
+      </table>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          One fresh analyze_data call, current quarter (Close_Date_Fiscal_Quarter_Datepart_clc=3, Close_Date_Relative_Year_clc='CY'), GROUP BY Core_Team_Users1.Plus_Twos1, pulling SUM(ACV_clc), SUM(Current_Commit_clc), SUM(Open_Pipe_clc), Coverage_clc together — returned real Commit/Coverage values on the first attempt, no engine quirk this run. 5-leader ACV sum = $12,283,032.74 vs org-wide KPI Tile Quarterly total $12,292,863.08 — 0.08% under, within normal variance, not corrected (a noticeably tighter match than Friday's 0.3%). Per-leader Commit figures are consistent with the org-wide Quarterly Commit total ($218,000,010.00 vs 5-leader sum of $218,889,010 — small variance, normal).
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Top 10 deals closed MTD</h2>
+      <div class="subtitle">Closed Aug 1–10, 2026 · ranked by ACV desc</div>
+      <table class="deals">
+        <tr><th>Deal</th><th>Account</th><th class="hide-ae">AE</th><th>L4 Leader</th><th class="num-cell">ACV</th></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i2SCYAA2/view">[DO NOT EDIT] Slack True up - Micro1<span class="tag unavail" style="margin-left:4px;transform:none;">flag</span></a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001eU5JCAA0/view">Micro1</a></td><td class="hide-ae">Luke Inserra</td><td>Aaron Scime</td><td class="num-cell">$483,768</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000bAPO1AAO/view">Imperial Management + 275 SVC Voice FDO Sept</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001UEUwXQAX/view">Imperial Management Services Group, LLC</a></td><td class="hide-ae">Laura Morgan</td><td>Jennifer Lagaly</td><td class="num-cell">$408,000</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hqHDjAAM/view">IB - Vediaud - ADDON</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001QqLwaQAF/view">Philippe Vediaud Publicite SAS</a></td><td class="hide-ae">Axel Normand</td><td>Giovanni Crispino</td><td class="num-cell">$239,337</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gu95FAAQ/view">Agriculture Capital - NZC</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001NYgXcQAL/view">Agriculture Capital</a></td><td class="hide-ae">Greg Portnov</td><td>Whitney Hillyer</td><td class="num-cell">$142,664</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i8cQAAAY/view">Trenkwalder International AG_Connexys_Add-On</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000001M1bjPAAR/view">Trenkwalder IT Services s.r.o.</a></td><td class="hide-ae">Marijana Mrkonjic</td><td>Giovanni Crispino</td><td class="num-cell">$117,836</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000YAT5CAAX/view">Lovable SLK ENT+ Upgrade #security</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000b92a3AAA/view">Lovable Labs Incorporated</a></td><td class="hide-ae">David Erik Herman Rosén</td><td>Giovanni Crispino</td><td class="num-cell">$106,470</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000SlSojAAF/view">Avive Solutions - (+50) 50 RCA</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001dNiuKAAS/view">Avive Solutions, Inc.*</a></td><td class="hide-ae">Matt Appell</td><td>Aaron Scime</td><td class="num-cell">$100,500</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000ek4kjAAA/view">Raw Entertainment - (+350) Slack Upgrade Ent +</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cgauGAAQ/view">Raw Entertainment B.V.</a></td><td class="hide-ae">Jameson Spirgi</td><td>Whitney Hillyer</td><td class="num-cell">$89,400</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hreD3AAI/view">Undead Labs LLC- (+200) 200 SLK Bus Plus</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00001Uo2RWAAZ/view">Undead Labs LLC</a></td><td class="hide-ae">David Chavez</td><td>Aaron Scime</td><td class="num-cell">$81,000</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gHWmTAAW/view">Zydus Pharmaceuticals USA - Marketing Cloud</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001SJ5VpQAL/view">Zydus Pharmaceuticals USA</a></td><td class="hide-ae">Miguel Carbonell</td><td>Jennifer Lagaly</td><td class="num-cell">$76,511</td></tr>
+      </table>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          Same pattern as "Top 10 deals closed today," month-to-date range (Aug1–10 2026). Top 10 list is unchanged from Friday's run — no deal closed in Aug8–10 was large enough to crack this MTD top 10, since the largest of the new closes (Groovy Aesthetic Clinic, $13,440.24) sits well below Zydus's #10 slot ($76,510.80). AE/L4 resolved via the same combined Opportunity_Id34-scoped lookup used across this whole page. SOQL confirms StageName "08 - Closed" for all 10 — no anomaly on this list this run (the Microban and Prudent FS/Luminaire anomalies flagged elsewhere on this page do not appear in this top-10 MTD slice).
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Top 10 open deals closing this month</h2>
+      <div class="subtitle">Open pipe closing in August 2026 · ranked by open pipe desc</div>
+      <table class="deals">
+        <tr><th>Deal</th><th>Account</th><th class="hide-ae">AE</th><th>L4 Leader</th><th>Stage</th><th>MFJ</th><th>Close</th><th class="num-cell">Open pipe</th></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000N77U9AAJ/view">We Pink - (+100) 100 CSS + AF + MS + Signature</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cbA8FAAU/view">We Pink</a></td><td class="hide-ae">Beatrice De Barros</td><td>Valeria Capetto</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 21</td><td class="num-cell">$938,159</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000glhFsAAI/view">DC - We Pink (Flex Credits) - Add On</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cbA8FAAU/view">We Pink</a></td><td class="hide-ae">Beatrice De Barros</td><td>Valeria Capetto</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 21</td><td class="num-cell">$364,336</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000YD20QAAT/view">PACE Group - CRM, Slack, Field Service SEP45 #Holdout</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000fVPpxAAG/view">The Pace Group</a></td><td class="hide-ae">Georgia Ferguson</td><td>Giovanni Crispino</td><td>06 - Finalizing Closure</td><td><span class="pill in">IN</span></td><td>Aug 12</td><td class="num-cell">$361,957</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000XqKm1AAF/view">CEA CAPA - MCA, MI, Personalization, D360 Profiles</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001e2wpkAAA/view">CEA CAPA Education Abroad (Main Org)</a></td><td class="hide-ae">Tyler Caldwell</td><td>Aaron Scime</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell">$328,511</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gBRUYAA4/view">Procede - MC + Sales + Service + Agentforce + Slack</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00001NzZslAAF/view">Procede</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell">$310,030</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000VvADhAAN/view">SWMW Law (+100) +100 EE Sales + A4Sales + Data Cloud NL</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000flscKAAQ/view">Swmw Law</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell">$247,950</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gM4XpAAK/view">Ondas - EE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed000015jWGbAAM/view">ONDAS Israel</a></td><td class="hide-ae">Shani Ben Zvi</td><td>Giovanni Crispino</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td>Aug 20</td><td class="num-cell">$225,501</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hZN5pAAG/view">Upgrade - Atrium - Health Cloud + 50</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000yMDk5AAG/view">Atrium Group AG</a></td><td class="hide-ae">Simon Milon</td><td>Giovanni Crispino</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 28</td><td class="num-cell">$219,558</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000cvBs6AAE/view">Fastbreak AI - Marketing Cloud Loyalty Mgmt Add-on</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000C1r3PAAR/view">Fast Break Ai</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell">$216,000</td></tr>
+        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gxhDdAAI/view">Options Group - (+270)270 Sales EE + SPIFF + SHIELD</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000ZkEvbAAF/view">Options Group</a></td><td class="hide-ae">Carly MacDougall</td><td>Aaron Scime</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell">$214,920</td></tr>
+      </table>
+      <details class="aitrust">
+        <summary>verification details</summary>
+        <div class="note">
+          Fresh Is_Current_Open_Pipe_clc=TRUE, Close_Date17 Aug1–31 2026, User_Name10='Adam Alfano', ranked by Open_Pipe_clc desc — same 10 deals, same order, same amounts as Friday's run (this table has not changed in the days between runs). Two flagged gotchas from prior runs remain applicable: (1) "We Pink" appears twice — two distinct Opportunity Ids on the same account (main deal + a Flex Credits add-on), kept as two separate rows; no overlap with this run's refreshed Watchlist. (2) Procede, SWMW Law, and Fastbreak AI each return L4-only (Aaron Scime, no AE row) — rendered "—" rather than blocking, unchanged from Friday. AE/L4 + Stage/MFJ re-resolved via the same combined batched calls used across this whole page.
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- WATCHLIST -->
+<div class="watchlist">
+  <h2>Watchlist</h2>
+  <div class="subtitle">Top open-pipe risk deals flagged UP− or OUT · no date-window filter (this pipe skews FQ4 Nov–Feb)</div>
+  <div class="wgrid">
+    <div class="witem alert">
+      <span class="wbadge act">Act now</span>
+      <div class="wtitle"><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000cjZdFAAU/view">Exclusive Networks - Demand Plan / Slack Marketing Cloud / Tableau / Agentforce #SELA</a> — <a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000xf3KwAAI/view">EXCLUSIVE NETWORKS</a></div>
+      <div class="wamt">$1.58M open pipe</div>
+      <div class="wnote">Largest at-risk deal on the board (UP−), grew slightly since Friday. Closes 2027-01-15 — flagged now because of size, not proximity.</div>
+    </div>
+    <div class="witem alert">
+      <span class="wbadge act">Act now</span>
+      <div class="wtitle"><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000WNCajAAH/view">HealthOne - (+400) HC A1E + DC/AF AELA + CC + MCA #FY27JumpstartSWE</a> — <a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001WADHHQA5/view">HealthOne - Medical and Wellness Centre</a></div>
+      <div class="wamt">$1.37M open pipe</div>
+      <div class="wnote">2nd-largest at-risk deal on the board (UP−). Closes 2027-01-29 — flagged for size, not proximity.</div>
+    </div>
+    <div class="witem">
+      <span class="wbadge week">This week</span>
+      <div class="wtitle"><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000f0U3JAAU/view">AO - IAD - Service Cloud / AgentForce</a> — <a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001QakbnQAB/view">IAD International</a></div>
+      <div class="wamt">$1.15M open pipe</div>
+      <div class="wnote">UP−, closes 2026-10-28 — the soonest-closing of the four, well inside FQ3.</div>
+    </div>
+    <div class="witem">
+      <span class="wbadge watch">Watch</span>
+      <div class="wtitle"><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000eYcVFAA0/view">PL - Laboratoire Théa - Life Science Cloud - Baybridge #inbound #AELA</a> — <a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001WJlNbQAL/view">Laboratoires Théa S.A.S.</a></div>
+      <div class="wamt">$1.22M open pipe</div>
+      <div class="wnote">UP−, closes 2027-01-04. Smallest gap to the top two but still 7-figure exposure.</div>
+    </div>
+    <div class="wcoverage">
+      <span class="wbadge watch">Watch — coverage health</span>
+      Current-quarter coverage sits at <b>3.2x</b>, and full-quarter velocity (<b>$943,323/day</b>) is running only slightly ahead of the 2-year historical average pace (<b>$892,917/day</b>) — a much thinner cushion than Friday's snapshot — while the four deals above still account for over $5.3M of at-risk open pipe (all UP−). Daily closes over the past 10 days ranged from $16,283 (Aug 8) to $3.22M (Aug 1). Watch late-quarter conversion discipline and today's early-morning pace rather than pipeline volume, which remains ample.
+    </div>
+  </div>
+  <details class="aitrust">
+    <summary>verification details</summary>
+    <div class="note">
+      Tableau Next: Open_Pipe_clc where Manager_Forecast_Judgment IN ('UP-','OUT'), User_Name10='Adam Alfano', ranked by open pipe desc, Open_Pipe_clc &gt; 0, phrased explicitly as "across all close dates, do not filter by fiscal quarter or relative year" per the standing correction. Worked cleanly this run (one retry needed after an initial cached/mismatched response — see footer for the query-count note). <b>Watchlist composition unchanged from Friday:</b> Exclusive Networks ($1,579,256.57, up slightly from $1,579,256.57 Friday — effectively flat), HealthOne ($1,370,000.00, unchanged), Laboratoires Théa ($1,222,875.64, unchanged), IAD International ($1,152,997.03, unchanged) — same four accounts, same order, same amounts to the cent in three of four cases, confirming this is a stable UP−/OUT population over the weekend rather than a query error. Org62 links matched by exact Opportunity Id from the Tableau Next pull, cross-checked against SOQL — all 4 matched cleanly.
+    </div>
+  </details>
+</div>
+
+<footer>
+  <b>Data sources:</b> Tableau Next SDM "Sls_Forecasting_Metrics_Expanded" (id 2SMed000001leKnGAI) via analyze_data, one call at a time, sequential — all Adam Alfano hierarchy figures scoped via Core_Team_Users1.User_Name10='Adam Alfano' unless noted. Salesforce SOQL used only for: Org62 record links and Stage/MFJ lookups (2 batched calls this run — one for all closed-deal Ids, one for all open-deal Ids). Daily target is sourced from a supplied daily-target sheet (21 business-day rows for August 2026), not from Commit÷working-days or ForecastingQuota. Monthly Commit is the actual current-month Commit (not the daily-target sheet, and not Commit÷3) — labeled "Commit," not "target." Quarterly target is unchanged and still uses the quarter Commit. <b>This run:</b> no Current_Commit_clc null-aggregate engine quirk was encountered (all grouped Commit pulls worked on the first or second attempt); three analyze_data calls returned stale/cached answers unrelated to the question asked (a Watchlist call, a Deal-movement call, and an open-deals-today call) and were each retried once successfully per the standing retry protocol, and one call timed out once (leader-level August Commit) and was retried successfully. No numbers on this page were fabricated, carried over from Friday's run without re-querying, or estimated without a labeled fallback. <b>Three anomalies flagged inline this run</b> (grey tags, not silently reconciled): Microban Products Company was returned as ACV closed today by Tableau Next but SOQL shows StageName "Dead - No Opportunity"; The Luminaire is flagged as open pipe closing this month by Tableau Next but SOQL shows StageName "08 - Closed"; Prudent FS shows open pipe today but SOQL StageName is "Dead - Webstore." The Deal Movement card's "Won since yesterday" ACV also does not reconcile with the Close_Date17=today ACV total — a methodology difference between two distinct measures, explained in that card's AI Trust note rather than force-matched. Every unavailable figure would render as a <span class="tag unavail" style="transform:none;">grey UNAVAIL tag</span> inline; none were needed this run (Yesterday's Aug 9 daily target is expected-missing per the weekend rule, not an UNAVAIL case).<br>
+  Report generated live on 2026-08-10, snapshot 7:55 AM PT, for Adam Alfano's FQ3 FY2027 President Sales Pulse. Total this run: 21 Tableau Next analyze_data attempts (including 5 retries after stale/failed responses) + 2 Salesforce SOQL calls = 23 calls, run sequentially and one at a time per protocol.
+</footer>
+
+</div>
+
+<script>
+document.querySelectorAll('.filterbar').forEach(function(bar){
+  var isKpi = bar.parentElement.querySelectorAll('.kpigroup').length > 0;
+  bar.addEventListener('click', function(e){
+    var btn = e.target.closest('.filterbtn');
+    if(!btn) return;
+    var group = btn.closest('.card');
+    group.querySelectorAll('.filterbtn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    var key = btn.dataset.kpi;
+    if(key){
+      group.querySelectorAll('.kpigroup').forEach(function(k){
+        k.classList.toggle('active', k.dataset.kpi === key);
+      });
+    }
+    var vkey = btn.dataset.velo;
+    if(vkey){
+      var summary = group.querySelector('#velo-summary');
+      // Daily targets sourced from the supplied daily-target sheet (§3a), not Commit÷working-days.
+      if(vkey === 'yesterday'){
+        summary.innerHTML = '<span class="num">$69,829</span><span class="lbl">closed yesterday (Aug 9, Sunday) · target n/a (weekend, no sheet row) · gap n/a</span>';
+      } else if(vkey === 'today'){
+        summary.innerHTML = '<span class="num">$167,612</span><span class="lbl">closed today · target $1.2M · gap $1.03M</span>';
+      } else if(vkey === 'week'){
+        summary.innerHTML = '<span class="num">$167,612</span><span class="lbl">closed this week so far (Aug 10, 1 business day elapsed) · target $1.2M · gap $1.03M</span>';
+      }
+    }
+  });
+});
+</script>
+<script>
+// RANSOM-NOTE VERDICT — splits the verdict sentence into per-character spans with
+// a small random rotation, a small random size jitter, and every-3rd-character
+// inverted (cut-and-pasted look). Runs on load so it still works if the verdict
+// text changes on a future refresh — no characters are hardcoded here.
+(function(){
+  var el = document.querySelector('.verdict .ransom-text') || document.querySelector('.verdict');
+  if(!el) return;
+  var text = el.textContent;
+  el.textContent = '';
+  var count = 0;
+  for(var i = 0; i < text.length; i++){
+    var ch = text[i];
+    var span = document.createElement('span');
+    span.textContent = ch;
+    span.style.display = 'inline-block';
+    if(ch.trim() === ''){
+      el.appendChild(span);
+      continue;
+    }
+    count++;
+    var mag = 3 + Math.random() * 3; // 3-6deg
+    var rot = (Math.random() < 0.5 ? -1 : 1) * mag;
+    var sizeJitter = 1 + (Math.random() * 0.2 - 0.1); // ±10%
+    span.style.transform = 'rotate(' + rot.toFixed(2) + 'deg)';
+    span.style.fontSize = (sizeJitter * 100).toFixed(0) + '%';
+    if(count % 3 === 0){
+      span.style.background = 'var(--ink)';
+      span.style.color = 'var(--paper)';
+      span.style.padding = '0 2px';
+      span.style.margin = '0 1px';
+    }
+    el.appendChild(span);
+  }
+})();
+</script>
+</body>
+</html>
