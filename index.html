@@ -489,25 +489,6 @@ body[data-mode="real"] .only-demo{display:none !important;}
 body[data-mode="demo"] details.aitrust{display:none !important;}
 body[data-mode="demo"] footer{display:none !important;}
 
-/* --- DEMO BANNER — hazard stripes in ink/paper. Deliberately not --pink
-   (alarm) or --acid (live), so those keep meaning exactly one thing. --- */
-.demobanner{
-  position:sticky; top:0; z-index:80;
-  margin:0 0 18px;
-  background:
-    repeating-linear-gradient(45deg, var(--paper) 0 7px, var(--ink) 7px 14px) top left / 100% 8px repeat-x,
-    repeating-linear-gradient(45deg, var(--paper) 0 7px, var(--ink) 7px 14px) bottom left / 100% 8px repeat-x,
-    var(--ink);
-  border:3px solid var(--ink);
-  padding:8px 0;
-}
-.demobanner-in{display:flex; gap:14px; align-items:baseline; flex-wrap:wrap; padding:12px 18px;}
-.demobanner-tag{
-  font-family:var(--font-display); font-size:15px; letter-spacing:2px; text-transform:uppercase;
-  background:var(--paper); color:var(--ink); padding:4px 10px; white-space:nowrap;
-}
-.demobanner-txt{font-family:var(--font-body); font-size:12px; line-height:1.6; color:var(--paper); flex:1; min-width:240px;}
-.demobanner-txt b{color:var(--paper); text-decoration:underline; text-underline-offset:3px;}
 .demo-footer{
   margin-top:40px; border-top:2px dashed var(--ink); padding-top:16px;
   font-family:var(--font-body); font-size:11px; color:var(--muted); line-height:1.7;
@@ -778,14 +759,6 @@ footer{overflow-wrap:anywhere;}
 <body data-mode="real" data-tableau="off">
 <div id="infoTip"></div>
 <div class="wrap">
-
-<!-- DEMO-MODE BANNER — only rendered while data-mode="demo" -->
-<div class="demobanner only-demo" role="alert">
-  <div class="demobanner-in">
-    <span class="demobanner-tag">Demo mode · simulated</span>
-    <span class="demobanner-txt"><b>Every figure, deal and account name shown below is an invented round-number placeholder. This is NOT real sales data.</b> Verification notes and the data-source footer are hidden while demo mode is on, because they describe the real live run. Switch the control to <b>REAL</b> for this snapshot's actual live-queried figures.</span>
-  </div>
-</div>
 
 <div class="masthead">
   <div>
