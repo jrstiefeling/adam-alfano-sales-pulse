@@ -4,6 +4,24 @@
 <meta charset="UTF-8">
 <title>Adam's Business Pulse — FQ3 FY27</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+/* The real figures ship in the markup, so a DEMO swap that runs at the end of
+   <body> lets them paint first — on a slow device that flash is long enough to
+   read. Decide the mode here instead and hold the render until the swap below
+   has run. Only the demo path is ever held, and the hold self-clears if the
+   main script never gets to run. */
+(function(){
+  try{
+    var m = null, q = /[?&]mode=([^&]*)/.exec(location.search);
+    if(q) m = decodeURIComponent(q[1]);
+    if(!m){ try{ m = sessionStorage.getItem('pulseMode'); }catch(e){} }
+    if(m !== 'demo') return;
+    var de = document.documentElement;
+    de.setAttribute('data-premode','demo');
+    setTimeout(function(){ de.removeAttribute('data-premode'); }, 2500);
+  }catch(e){}
+})();
+</script>
 <style>
 :root{
   --ink:#0B0B0B;
@@ -421,6 +439,9 @@ body[data-tableau="on"] .tbnote{display:block;}
 .tbnote b{color:var(--tab); font-weight:700;}
 
 /* --- DEMO / REAL BLOCK VISIBILITY --- */
+/* Paired with the pre-paint guard in <head>: held only until the swap has run,
+   and released by that script's own timeout if the swap never happens. */
+html[data-premode="demo"] body{visibility:hidden;}
 body[data-mode="demo"] .only-real{display:none !important;}
 body[data-mode="real"] .only-demo{display:none !important;}
 /* Simulated figures must never sit next to this run's real verification prose,
@@ -462,6 +483,9 @@ body[data-mode="demo"] footer{display:none !important;}
    every rule below is a no-op until "Why Tableau" is on. */
 .tbval{color:var(--ink);}
 body[data-tableau="on"] .tbval{color:var(--tab);}
+/* .spotlight.compact .amount outranks the generic rule above on specificity, so
+   the top-deal figure needs its own override or it alone stays ink-black. */
+body[data-tableau="on"] .spotlight.compact .amount.tbval{color:var(--tab);}
 .tbfill{background:var(--ink);}
 body[data-tableau="on"] .tbfill{background:var(--tab);}
 /* Hatched fill — ported for parity with the reference; this layout currently
@@ -515,6 +539,7 @@ body[data-tableau="on"] .tbcard > h2{background:var(--tab);}
 #infoTip{
   position:fixed; z-index:99; display:none;
   width:320px; max-width:calc(100vw - 32px);
+  max-height:calc(100vh - 20px); overflow-y:auto;
   background:var(--card-bg); color:var(--ink);
   border:3px solid var(--ink); box-shadow:5px 5px 0 var(--ink);
   padding:12px 14px;
@@ -1290,6 +1315,8 @@ try{
 
   setMode(initMode);
   setTableau(initTb === 'on');
+  /* Swap is done — release the pre-paint hold set in <head>. */
+  document.documentElement.removeAttribute('data-premode');
 
   var segBtns2 = document.querySelectorAll('#modeSeg button');
   for(var s = 0; s < segBtns2.length; s++){
@@ -1443,7 +1470,11 @@ try{
   document.addEventListener('click', function(e){
     if(pinnedInfo && infoTip && !infoTip.contains(e.target) && e.target !== pinnedInfo){ unpinTip(); }
   });
-  document.addEventListener('scroll', function(){ if(pinnedInfo){ unpinTip(); } else { hideTip(); } }, true);
+  document.addEventListener('scroll', function(e){
+    /* Scrolling a tooltip that is taller than the viewport must not close it. */
+    if(e.target === infoTip) return;
+    if(pinnedInfo){ unpinTip(); } else { hideTip(); }
+  }, true);
 
   /* ---------- 6. SCROLL-IN ANIMATION ---------- */
   /* translateY is composed with each card's own --rot rotation in CSS, so cards
@@ -1469,6 +1500,7 @@ try{
 }catch(err){
   /* Never leave the report invisible because of a scripting failure. */
   try{
+    document.documentElement.removeAttribute('data-premode');
     var all = document.querySelectorAll('.card, .spotlight, .watchlist');
     for(var i = 0; i < all.length; i++){ all[i].classList.add('in-view'); }
     document.body.setAttribute('data-mode','real');
