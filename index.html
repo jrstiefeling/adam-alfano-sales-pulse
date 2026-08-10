@@ -11,6 +11,7 @@
   --card-bg:#E1DDD2;
   --pink:#FF1E56;        /* ALARM ONLY — slipped, below commit, critical/risk. Means exactly one thing. */
   --acid:#D8FF00;         /* LIVE ONLY — today's bar / active filter / live selection. Means exactly one thing. */
+  --tab:#2F5FED;          /* TABLEAU PROVENANCE ONLY — figure read straight from the Tableau Next semantic model. */
   --muted:#4A4844;
   --smear:#4A4844;
   --faint:#8C887E;
@@ -99,9 +100,13 @@ a{color:inherit;}
   padding:20px 22px;
   margin-bottom:24px;
   position:relative;
+  /* Per-card rotation is held in --rot so the scroll-in animation can compose
+     translateY() with it instead of overwriting it. */
+  --rot:0deg;
+  transform:rotate(var(--rot));
 }
-.card:nth-of-type(odd){transform:rotate(0.4deg);}
-.card:nth-of-type(even){transform:rotate(-0.35deg);}
+.card:nth-of-type(odd){--rot:0.4deg;}
+.card:nth-of-type(even){--rot:-0.35deg;}
 .card.alert{border:5px solid var(--pink); box-shadow:var(--shadow-lg);}
 .card h2{
   font-family:var(--font-display);
@@ -139,6 +144,9 @@ a{color:inherit;}
 }
 .tag.fallback{text-decoration:underline dotted;}
 .tag.unavail{background:var(--pink); color:var(--paper); border-color:var(--pink);}
+/* Marks an invented demo-mode row so a simulated line can never be mistaken
+   for a real one, even out of context. */
+.tag.sim{background:var(--paper); color:var(--ink); border:1.5px solid var(--ink); margin-left:4px;}
 
 /* TOP ROW */
 .toprow{
@@ -242,7 +250,8 @@ a{color:inherit;}
   border-radius:0;
   box-shadow:5px 5px 0 var(--ink);
   padding:20px 22px;
-  transform:rotate(0.4deg);
+  --rot:0.4deg;
+  transform:rotate(var(--rot));
 }
 .spotlight h2{
   font-family:var(--font-display); font-weight:700; font-size:20px; letter-spacing:1.5px; text-transform:uppercase;
@@ -295,7 +304,8 @@ a.o62:hover{background:var(--ink); color:var(--paper); text-decoration:none;}
   box-shadow:5px 5px 0 var(--ink);
   padding:24px 26px;
   margin-top:8px;
-  transform:rotate(-0.35deg);
+  --rot:-0.35deg;
+  transform:rotate(var(--rot));
 }
 .watchlist h2{
   font-family:var(--font-display); font-weight:700; font-size:20px; letter-spacing:1.5px; text-transform:uppercase;
@@ -358,6 +368,210 @@ details.aitrust .note{
   padding-top:10px;
 }
 
+/* ============================================================
+   PORTED CONTROLS — DEMO/REAL, Show Tableau, Metric Cards,
+   info tooltips, collapsible headers, scroll-in animation.
+   Ported from reference/pulse-zine-v16.html and restyled to
+   this report's desktop zine idiom.
+   ============================================================ */
+
+/* --- CONTROLS BAR --- */
+.controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0 0 10px;}
+.seg{display:flex; border:3px solid var(--ink); background:var(--paper); flex-shrink:0;}
+.segbtn{
+  font-family:var(--font-display);
+  text-transform:uppercase;
+  font-size:12px;
+  letter-spacing:1px;
+  padding:12px 20px;
+  min-height:44px;
+  border:0;
+  background:var(--paper);
+  color:var(--ink);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.segbtn + .segbtn{border-left:3px solid var(--ink);}
+/* Selected mode inverts to ink — deliberately NOT --acid, which is reserved
+   for live/active data, and would misread on the simulated (DEMO) side. */
+.segbtn.on{background:var(--ink); color:var(--paper);}
+.seglbl{
+  font-family:var(--font-display); text-transform:uppercase; font-size:11px;
+  letter-spacing:1.5px; color:var(--muted); align-self:center;
+}
+#tbBtn.on{background:var(--tab); border-color:var(--tab); color:#fff;}
+.modenote{font-family:var(--font-body); font-size:11px; color:var(--muted); letter-spacing:0.2px;}
+.modenote b{color:var(--ink);}
+.legend{
+  font-family:var(--font-body); font-size:11px; color:var(--muted); line-height:1.65;
+  margin:0 0 20px; padding-bottom:12px; border-bottom:2px dashed var(--ink);
+}
+.legend b{color:var(--ink);}
+.legend .lg-tab{color:var(--tab); font-weight:700;}
+
+/* --- DEMO / REAL BLOCK VISIBILITY --- */
+body[data-mode="demo"] .only-real{display:none !important;}
+body[data-mode="real"] .only-demo{display:none !important;}
+/* Simulated figures must never sit next to this run's real verification prose,
+   so the AI Trust panels and the footer provenance note are hidden (unaltered,
+   simply not displayed) while DEMO is active. */
+body[data-mode="demo"] details.aitrust{display:none !important;}
+body[data-mode="demo"] footer{display:none !important;}
+
+/* --- DEMO BANNER — hazard stripes in ink/paper. Deliberately not --pink
+   (alarm) or --acid (live), so those keep meaning exactly one thing. --- */
+.demobanner{
+  position:sticky; top:0; z-index:80;
+  margin:0 0 18px;
+  background:
+    repeating-linear-gradient(45deg, var(--paper) 0 7px, var(--ink) 7px 14px) top left / 100% 8px repeat-x,
+    repeating-linear-gradient(45deg, var(--paper) 0 7px, var(--ink) 7px 14px) bottom left / 100% 8px repeat-x,
+    var(--ink);
+  border:3px solid var(--ink);
+  padding:8px 0;
+}
+.demobanner-in{display:flex; gap:14px; align-items:baseline; flex-wrap:wrap; padding:12px 18px;}
+.demobanner-tag{
+  font-family:var(--font-display); font-size:15px; letter-spacing:2px; text-transform:uppercase;
+  background:var(--paper); color:var(--ink); padding:4px 10px; white-space:nowrap;
+}
+.demobanner-txt{font-family:var(--font-body); font-size:12px; line-height:1.6; color:var(--paper); flex:1; min-width:240px;}
+.demobanner-txt b{color:var(--paper); text-decoration:underline; text-underline-offset:3px;}
+.demo-footer{
+  margin-top:40px; border-top:2px dashed var(--ink); padding-top:16px;
+  font-family:var(--font-body); font-size:11px; color:var(--muted); line-height:1.7;
+}
+.demo-footer b{color:var(--ink);}
+
+/* --- TABLEAU PROVENANCE TINT ---
+   Blue marks a figure read straight from the Tableau Next SDM
+   "Sls_Forecasting_Metrics_Expanded." Figures from the supplied daily-target
+   sheet, from Salesforce SOQL (Stage / MFJ / Org62 links), or arithmetically
+   derived on this page (gaps, YoY, velocity) are NOT marked. Off by default;
+   every rule below is a no-op until "Show Tableau" is on. */
+.tbval{color:var(--ink);}
+body[data-tableau="on"] .tbval{color:var(--tab);}
+.tbfill{background:var(--ink);}
+body[data-tableau="on"] .tbfill{background:var(--tab);}
+/* Hatched fill — ported for parity with the reference; this layout currently
+   has no hatched Tableau fill to apply it to. */
+.tbfillh{background:repeating-linear-gradient(45deg, var(--ink) 0 3px, transparent 3px 6px);}
+body[data-tableau="on"] .tbfillh{background:repeating-linear-gradient(45deg, var(--tab) 0 3px, transparent 3px 6px);}
+.tbtrk{border-color:var(--ink);}
+body[data-tableau="on"] .tbtrk{border-color:var(--tab);}
+.tbblock{border-left-color:var(--ink);}
+body[data-tableau="on"] .tbblock{border-left-color:var(--tab);}
+body[data-tableau="on"] .tbcard > h2{background:var(--tab);}
+
+/* --- METRIC CARDS VISIBILITY --- */
+.hidden-card{display:none !important;}
+
+/* --- COLLAPSIBLE CARD HEADERS ---
+   This report's cards use an <h2> as the header slab (not the reference's
+   .hd wrapper), so collapse hides every direct child except that <h2>. */
+[data-key] > h2{cursor:pointer; -webkit-user-select:none; user-select:none;}
+.card h2, .spotlight h2, .watchlist h2{position:relative; padding-right:88px;}
+.collapse-arrow{
+  position:absolute; right:54px; top:50%; margin-top:-8px;
+  font-size:13px; line-height:1; letter-spacing:0;
+  pointer-events:none; transition:transform .2s ease;
+}
+.card > h2 .collapse-arrow{color:var(--paper);}
+.spotlight > h2 .collapse-arrow, .watchlist > h2 .collapse-arrow{color:var(--ink);}
+[data-key].collapsed > *:not(h2){display:none !important;}
+[data-key].collapsed > h2 .collapse-arrow{transform:rotate(-90deg);}
+.card.collapsed > h2, .spotlight.collapsed > h2{margin-bottom:-20px;}
+.watchlist.collapsed > h2{margin-bottom:-24px;}
+@media (prefers-reduced-motion:reduce){ .collapse-arrow{transition:none;} }
+
+/* --- INFO BUTTON + TOOLTIP --- */
+.info{
+  position:absolute; right:16px; top:50%; margin-top:-13px;
+  width:26px; height:26px; border-radius:50%;
+  background:transparent; border:2px solid currentColor;
+  font-family:var(--font-display); font-size:15px; line-height:1;
+  letter-spacing:0; text-transform:none;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; padding:0;
+}
+/* Transparent 44px tap target around the 26px circle. */
+.info::after{content:""; position:absolute; top:-9px; right:-9px; bottom:-9px; left:-9px;}
+.card > h2 > .info{color:var(--paper);}
+.spotlight > h2 > .info, .watchlist > h2 > .info{color:var(--ink);}
+.card > h2 > .info:hover, .card > h2 > .info:focus{background:var(--paper); color:var(--ink);}
+.spotlight > h2 > .info:hover, .watchlist > h2 > .info:hover,
+.spotlight > h2 > .info:focus, .watchlist > h2 > .info:focus{background:var(--ink); color:var(--paper);}
+#infoTip{
+  position:fixed; z-index:99; display:none;
+  width:320px; max-width:calc(100vw - 32px);
+  background:var(--card-bg); color:var(--ink);
+  border:3px solid var(--ink); box-shadow:5px 5px 0 var(--ink);
+  padding:12px 14px;
+  font-family:var(--font-body); font-size:11.5px; line-height:1.6;
+}
+#infoTip.show{display:block;}
+#infoTip .sec{margin-bottom:10px;}
+#infoTip .sec:last-child{margin-bottom:0;}
+#infoTip b{
+  display:block; font-family:var(--font-display); font-size:10px;
+  letter-spacing:1.5px; text-transform:uppercase; margin-bottom:3px;
+}
+#infoTip .sec.tab{border-top:2px dashed var(--tab); padding-top:8px;}
+#infoTip .sec.tab b{color:var(--tab);}
+
+/* --- METRIC CARDS MODAL --- */
+.modal-overlay{
+  position:fixed; top:0; right:0; bottom:0; left:0; z-index:95;
+  background:rgba(11,11,11,0.62);
+  display:none; align-items:center; justify-content:center; padding:24px;
+}
+.modal-overlay.show{display:flex;}
+.modal-box{
+  background:var(--paper); border:3px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+  width:100%; max-width:520px; max-height:80vh; overflow-y:auto; padding:22px 24px;
+}
+.modal-box h3{
+  font-family:var(--font-display); font-size:26px; letter-spacing:1.5px;
+  text-transform:uppercase; margin:0;
+}
+.modal-sub{
+  font-family:var(--font-body); font-size:12px; color:var(--muted);
+  margin:8px 0 14px; padding-bottom:10px; border-bottom:2px dashed var(--ink);
+}
+.mrow{display:flex; align-items:center; gap:12px; padding:6px 0; min-height:44px; border-top:2px dashed var(--ink);}
+.mrow:first-of-type{border-top:none;}
+.mrow input{width:20px; height:20px; flex-shrink:0; accent-color:var(--ink);}
+.mrow label{font-family:var(--font-body); font-size:13px; flex:1; cursor:pointer;}
+.mbtns{display:flex; gap:10px; margin-top:18px; padding-top:14px; border-top:3px solid var(--ink);}
+.mbtns .filterbtn{flex:1;}
+.mbtns .filterbtn.primary{background:var(--ink); color:var(--paper);}
+
+/* --- SCROLL-IN ANIMATION ---
+   Gated on [data-js] so the report still renders if the script never runs.
+   translateY composes with each card's own --rot rotation. */
+html[data-js="on"] .card,
+html[data-js="on"] .spotlight,
+html[data-js="on"] .watchlist{
+  opacity:0;
+  transform:rotate(var(--rot)) translateY(18px);
+  transition:opacity .55s ease, transform .55s ease;
+}
+html[data-js="on"] .card.in-view,
+html[data-js="on"] .spotlight.in-view,
+html[data-js="on"] .watchlist.in-view{
+  opacity:1;
+  transform:rotate(var(--rot)) translateY(0);
+}
+@media (prefers-reduced-motion:reduce){
+  html[data-js="on"] .card,
+  html[data-js="on"] .spotlight,
+  html[data-js="on"] .watchlist{
+    transition:none; opacity:1; transform:rotate(var(--rot));
+  }
+}
+
 /* FOOTER */
 footer{
   margin-top:40px; border-top:2px dashed var(--ink); padding-top:16px;
@@ -366,8 +580,17 @@ footer{
 footer b{color:var(--ink);}
 </style>
 </head>
-<body>
+<body data-mode="real" data-tableau="off">
+<div id="infoTip"></div>
 <div class="wrap">
+
+<!-- DEMO-MODE BANNER — only rendered while data-mode="demo" -->
+<div class="demobanner only-demo" role="alert">
+  <div class="demobanner-in">
+    <span class="demobanner-tag">Demo mode · simulated</span>
+    <span class="demobanner-txt"><b>Every figure, deal and account name shown below is an invented round-number placeholder. This is NOT real sales data.</b> Verification notes and the data-source footer are hidden while demo mode is on, because they describe the real live run. Switch the control to <b>REAL</b> for this snapshot's actual live-queried figures.</span>
+  </div>
+</div>
 
 <div class="masthead">
   <div>
@@ -375,22 +598,38 @@ footer b{color:var(--ink);}
     <h1>Adam's Business Pulse</h1>
   </div>
   <div class="meta">
-    Snapshot: <b>Monday, August 10, 2026, 7:55 AM PT</b><br>
+    Snapshot: <b class="sw" data-r="Monday, August 10, 2026, 7:55 AM PT" data-d="SIMULATED PREVIEW — NO LIVE PULL">Monday, August 10, 2026, 7:55 AM PT</b><br>
     FQ3 FY2027 · Aug–Oct 2026 · Day 10 of 65<br>
     Hierarchy: Adam Alfano (Tableau Next rollup)
   </div>
 </div>
 
+<!-- CONTROLS -->
+<div class="controls">
+  <span class="seglbl">Figures:</span>
+  <div class="seg" id="modeSeg" role="group" aria-label="Data mode">
+    <button class="segbtn" type="button" data-v="real">Real</button>
+    <button class="segbtn" type="button" data-v="demo">Demo</button>
+  </div>
+  <button class="filterbtn" type="button" id="tbBtn" aria-pressed="false">Show Tableau</button>
+  <button class="filterbtn" type="button" id="cardsBtn">Metric Cards</button>
+  <span class="modenote" id="modeStatus"></span>
+</div>
+<div class="legend">
+  <span class="lg-tab">Blue</span> = figure read straight from the Tableau Next semantic model, toggled with <b>Show Tableau</b> (daily-target-sheet figures, Salesforce SOQL fields and on-page arithmetic stay black) · click the <b>(i)</b> on any card header for its source and freshness · click a card header to collapse it · <b>Metric Cards</b> hides sections you don't need.
+</div>
+
 <!-- VERDICT -->
 <div class="verdict-wrap">
-  <div class="verdict"><span class="v-label">Verdict —</span><span class="ransom-text">Well behind today's target this early in the day and behind this month's Commit pace; full-quarter velocity ($943,323/day) is running only slightly ahead of the 2-year average ($892,917/day) — a much thinner cushion than Friday's snapshot.</span></div>
+  <div class="verdict only-real"><span class="v-label">Verdict —</span><span class="ransom-text">Well behind today's target this early in the day and behind this month's Commit pace; full-quarter velocity ($943,323/day) is running only slightly ahead of the 2-year average ($892,917/day) — a much thinner cushion than Friday's snapshot.</span></div>
+  <div class="verdict only-demo"><span class="v-label">Verdict —</span><span class="ransom-text">Simulated demo verdict: this preview's invented pace ($900,000/day) is running behind its invented target, on made-up round numbers. Nothing on this page is real sales data — switch to REAL for the live snapshot.</span></div>
 </div>
 
 <!-- TOP ROW: BUSINESS WON (5/8) + AE SPOTLIGHT (3/8) -->
 <div class="toprow">
 
-  <div class="card" style="margin-bottom:0;">
-    <h2>Business Won <span class="tag">CSV-sourced target</span></h2>
+  <div class="card" data-key="business-won" data-title="Business Won" style="margin-bottom:0;">
+    <h2>Business Won <span class="tag">CSV-sourced target</span><button class="info" type="button" aria-label="Source and freshness for Business Won" data-fresh="REAL: live Tableau Next pull for the 2026-08-10 7:55 AM PT snapshot — today's figure is a partial business day. DEMO: invented round-number placeholders, no query run." data-src="Tableau Next SDM Sls_Forecasting_Metrics_Expanded — SUM(ACV_clc) and SUM(Current_Commit_clc), scoped to Core_Team_Users1.User_Name10='Adam Alfano'. The daily target is an exact-date row from the supplied daily-target sheet, not Commit ÷ working days. Gaps are arithmetic on those two inputs, computed on this page." data-tabbenefit="Closed ACV and Commit both resolve against one certified definition in the semantic layer, so this tile, the leader roll-up and Finance are all quoting the same number. The only figure here that is not certified is the daily target, which still arrives as a spreadsheet row.">i</button></h2>
     <div class="subtitle">Daily / Monthly / Quarterly toggle — live pull, scoped to Adam Alfano's org</div>
 
     <div class="filterbar">
@@ -400,10 +639,10 @@ footer b{color:var(--ink);}
     </div>
 
     <div class="kpigroup active" data-kpi="daily">
-      <div class="hero"><span class="num">$167,612</span><span class="lbl">ACV closed today (Aug 10)</span></div>
+      <div class="hero"><span class="num tbfill sw" data-r="$167,612" data-d="$820,000">$167,612</span><span class="lbl">ACV closed today (Aug 10)</span></div>
       <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);">
-        <div class="kpi-box"><div class="num">$1.2M</div><div class="lbl">Daily target (Aug 10, per target sheet)</div></div>
-        <div class="kpi-box"><div class="num" style="color:var(--pink);">$1.03M</div><div class="lbl">Gap to daily target</div></div>
+        <div class="kpi-box"><div class="num sw" data-r="$1.2M" data-d="$1.00M">$1.2M</div><div class="lbl">Daily target (Aug 10, per target sheet)</div></div>
+        <div class="kpi-box"><div class="num sw" data-r="$1.03M" data-d="$180,000" style="color:var(--pink);">$1.03M</div><div class="lbl">Gap to daily target</div></div>
       </div>
       <details class="aitrust">
         <summary>verification details</summary>
@@ -414,10 +653,10 @@ footer b{color:var(--ink);}
     </div>
 
     <div class="kpigroup" data-kpi="monthly">
-      <div class="hero"><span class="num">$9.43M</span><span class="lbl">ACV closed MTD (Aug 1–10)</span></div>
+      <div class="hero"><span class="num tbfill sw" data-r="$9.43M" data-d="$9.00M">$9.43M</span><span class="lbl">ACV closed MTD (Aug 1–10)</span></div>
       <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);">
-        <div class="kpi-box"><div class="num">$51.0M</div><div class="lbl">Monthly Commit (August 2026)</div></div>
-        <div class="kpi-box"><div class="num" style="color:var(--pink);">$41.57M</div><div class="lbl">Gap to Monthly Commit</div></div>
+        <div class="kpi-box tbblock"><div class="num tbfill sw" data-r="$51.0M" data-d="$50.0M">$51.0M</div><div class="lbl">Monthly Commit (August 2026)</div></div>
+        <div class="kpi-box"><div class="num sw" data-r="$41.57M" data-d="$41.00M" style="color:var(--pink);">$41.57M</div><div class="lbl">Gap to Monthly Commit</div></div>
       </div>
       <details class="aitrust">
         <summary>verification details</summary>
@@ -428,17 +667,17 @@ footer b{color:var(--ink);}
     </div>
 
     <div class="kpigroup" data-kpi="quarterly">
-      <div class="hero"><span class="num">$12.29M</span><span class="lbl">ACV closed, full FQ3 (Aug–Oct 2026)</span></div>
+      <div class="hero"><span class="num tbfill sw" data-r="$12.29M" data-d="$12.00M">$12.29M</span><span class="lbl">ACV closed, full FQ3 (Aug–Oct 2026)</span></div>
       <div class="kpi-grid">
-        <div class="kpi-box"><div class="num">$218.0M</div><div class="lbl">FQ3 commit (quarter target, no division)</div></div>
-        <div class="kpi-box"><div class="num" style="color:var(--pink);">$205.71M</div><div class="lbl">Gap to quarter target</div></div>
-        <div class="kpi-box"><div class="num">3.2x</div><div class="lbl">Coverage (current quarter, org-wide)</div></div>
+        <div class="kpi-box tbblock"><div class="num tbfill sw" data-r="$218.0M" data-d="$200.0M">$218.0M</div><div class="lbl">FQ3 commit (quarter target, no division)</div></div>
+        <div class="kpi-box"><div class="num sw" data-r="$205.71M" data-d="$188.00M" style="color:var(--pink);">$205.71M</div><div class="lbl">Gap to quarter target</div></div>
+        <div class="kpi-box tbblock"><div class="num tbfill sw" data-r="3.2x" data-d="3.0x">3.2x</div><div class="lbl">Coverage (current quarter, org-wide)</div></div>
       </div>
       <div class="statline">
-        <div><span class="s">YoY (QTD-aligned, Aug1–10)</span><span class="v neg">−3.3%</span></div>
-        <div><span class="s">Velocity (CY, $/day QTD)</span><span class="v">$943,323</span></div>
-        <div><span class="s">Historical velocity (2-yr avg, $/day)</span><span class="v">$892,917</span></div>
-        <div><span class="s">Open pipe, current qtr</span><span class="v">$667.98M</span></div>
+        <div><span class="s">YoY (QTD-aligned, Aug1–10)</span><span class="v neg sw" data-r="−3.3%" data-d="−5.0%">−3.3%</span></div>
+        <div><span class="s">Velocity (CY, $/day QTD)</span><span class="v sw" data-r="$943,323" data-d="$900,000">$943,323</span></div>
+        <div><span class="s">Historical velocity (2-yr avg, $/day)</span><span class="v sw" data-r="$892,917" data-d="$850,000">$892,917</span></div>
+        <div class="tbblock"><span class="s">Open pipe, current qtr</span><span class="v tbval sw" data-r="$667.98M" data-d="$600.00M">$667.98M</span></div>
       </div>
       <details class="aitrust">
         <summary>verification details</summary>
@@ -451,20 +690,26 @@ footer b{color:var(--ink);}
     </div>
   </div>
 
-  <div class="spotlight compact" style="margin-bottom:0;">
-    <h2>AE Spotlight — MTD</h2>
+  <div class="spotlight compact" data-key="ae-spotlight" data-title="AE Spotlight — MTD" style="margin-bottom:0;">
+    <h2>AE Spotlight — MTD<button class="info" type="button" aria-label="Source and freshness for AE Spotlight" data-fresh="REAL: re-resolved live this run and re-confirmed against the prior snapshot. DEMO: invented deal, account and names." data-src="Tableau Next SDM grouped by Opportunity_Name15 / Account_Name129 / Opportunity_Id34 for the amount and for the AE / L4 resolution. Salesforce SOQL used only for the Org62 record links and the StageName cross-check." data-tabbenefit="The amount and the owning AE / L4 come out of the same governed hierarchy join, so a top-deal callout can be trusted to sit inside Adam's downline without hand-scoping roles for this one report.">i</button></h2>
     <div class="subtitle">Top deal closed month-to-date</div>
     <div class="toprow-1">
-      <div class="name">Luke Inserra <span style="color:#a89f8f;font-size:12px;">(AE) · L4 Aaron Scime</span></div>
-      <div class="amount">$483,768</div>
+      <div class="name"><span class="sw" data-r="Luke Inserra" data-d="Priya Shah">Luke Inserra</span> <span class="sw" style="color:#a89f8f;font-size:12px;" data-r="(AE) · L4 Aaron Scime" data-d="(AE) · L4 Marcus Webb">(AE) · L4 Aaron Scime</span></div>
+      <div class="amount tbval sw" data-r="$483,768" data-d="$500,000">$483,768</div>
     </div>
-    <div class="toprow-2">
+    <div class="toprow-2 only-real">
       <div class="deal">
         <a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i2SCYAA2/view">[DO NOT EDIT] Slack True up - Micro1 - 2026-08-01 - T03BXE52RJA</a> —
         <a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001eU5JCAA0/view">Micro1</a>
       </div>
       <div class="narrative">
         Still the top MTD line this run and still an automated Slack seat true-up on Micro1's account, not a net-new land — worth flagging rather than celebrating. The largest genuine new-logo/expansion win MTD remains Laura Morgan's $408K close on Imperial Management (Day 1 of the month), still nearly 1.7x the next-biggest deal and the real pacesetter for the quarter; no larger genuine deal has closed since Friday.
+      </div>
+    </div>
+    <div class="toprow-2 only-demo">
+      <div class="deal">Bright Harbor Logistics — Slack Business+ expansion (+400 seats) — <b>simulated example deal</b></div>
+      <div class="narrative">
+        Illustrative placeholder narrative for demo mode: the invented top line this run is a $500,000 round-number expansion at a fictional account, with a $250,000 second-place deal behind it. No real deal, account, AE or amount appears in this view.
       </div>
     </div>
     <details class="aitrust">
@@ -483,47 +728,47 @@ footer b{color:var(--ink);}
   <div>
     <span class="col-head">Daily View</span>
 
-    <div class="card">
-      <h2>Velocity</h2>
+    <div class="card" data-key="velocity" data-title="Velocity">
+      <h2>Velocity<button class="info" type="button" aria-label="Source and freshness for Velocity" data-fresh="REAL: fresh Aug 1–10 2026 daily series pulled for the 7:55 AM PT snapshot — today's bar is a partial day. DEMO: invented placeholder series." data-src="Tableau Next SDM — SUM(ACV_clc) grouped by Close_Date17, scoped to User_Name10='Adam Alfano'. The dashed reference ticks come from the supplied daily-target sheet; weekend days have no sheet row, so they carry no tick." data-tabbenefit="One grouped semantic query returns the whole month's daily curve, so day-over-day pace is comparable by construction instead of being stitched together from separate daily exports.">i</button></h2>
       <div class="subtitle">Daily ACV closed, month-to-date · filter: Yesterday / Today / This week</div>
       <div class="filterbar">
         <button class="filterbtn" data-velo="yesterday">Yesterday</button>
         <button class="filterbtn active" data-velo="today">Today</button>
         <button class="filterbtn" data-velo="week">This week</button>
       </div>
-      <div id="velo-summary" class="hero"><span class="num">$167,612</span><span class="lbl">closed today · target $1.2M · gap $1.03M</span></div>
+      <div id="velo-summary" class="hero"><span class="num tbfill sw" data-r="$167,612" data-d="$820,000">$167,612</span><span class="lbl sw" data-r="closed today · target $1.2M · gap $1.03M" data-d="closed today · target $1.00M · gap $180,000">closed today · target $1.2M · gap $1.03M</span></div>
       <div class="statline" style="margin-bottom:6px;">
-        <div><span class="s">Today's target (target sheet)</span><span class="v">$1.2M</span></div>
-        <div><span class="s">August Monthly Commit</span><span class="v">$51.0M</span></div>
+        <div><span class="s">Today's target (target sheet)</span><span class="v sw" data-r="$1.2M" data-d="$1.00M">$1.2M</span></div>
+        <div class="tbblock"><span class="s">August Monthly Commit</span><span class="v tbval sw" data-r="$51.0M" data-d="$50.0M">$51.0M</span></div>
       </div>
-      <div class="velo-chart torn">
-        <div class="velo-bar" style="height:100%;"><span class="amt">$3.22M</span><span class="day">Aug 1</span></div>
-        <div class="velo-bar" style="height:3%;"><span class="amt">$111,729</span><span class="day">Aug 2</span></div>
-        <div class="velo-bar" style="height:25%;">
-          <span class="amt">$805,478</span><span class="day">Aug 3</span><span class="tgt">target $3.10M</span>
-          <div class="velo-tick" style="bottom:144px;"></div>
+      <div class="velo-chart torn tbtrk">
+        <div class="velo-bar tbfill swh" data-rh="100%" data-dh="100%" style="height:100%;"><span class="amt tbval sw" data-r="$3.22M" data-d="$3.00M">$3.22M</span><span class="day">Aug 1</span></div>
+        <div class="velo-bar tbfill swh" data-rh="3%" data-dh="3%" style="height:3%;"><span class="amt tbval sw" data-r="$111,729" data-d="$100,000">$111,729</span><span class="day">Aug 2</span></div>
+        <div class="velo-bar tbfill swh" data-rh="25%" data-dh="27%" style="height:25%;">
+          <span class="amt tbval sw" data-r="$805,478" data-d="$800,000">$805,478</span><span class="day">Aug 3</span><span class="tgt sw" data-r="target $3.10M" data-d="target $3.00M">target $3.10M</span>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="144px" data-dv="140px" style="bottom:144px;"></div>
         </div>
-        <div class="velo-bar" style="height:38%;">
-          <span class="amt">$1.23M</span><span class="day">Aug 4</span><span class="tgt">target $1.10M</span>
-          <div class="velo-tick" style="bottom:51px;"></div>
+        <div class="velo-bar tbfill swh" data-rh="38%" data-dh="40%" style="height:38%;">
+          <span class="amt tbval sw" data-r="$1.23M" data-d="$1.20M">$1.23M</span><span class="day">Aug 4</span><span class="tgt sw" data-r="target $1.10M" data-d="target $1.00M">target $1.10M</span>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="51px" data-dv="47px" style="bottom:51px;"></div>
         </div>
-        <div class="velo-bar" style="height:35%;">
-          <span class="amt">$1.12M</span><span class="day">Aug 5</span><span class="tgt">target $1.10M</span>
-          <div class="velo-tick" style="bottom:51px;"></div>
+        <div class="velo-bar tbfill swh" data-rh="35%" data-dh="37%" style="height:35%;">
+          <span class="amt tbval sw" data-r="$1.12M" data-d="$1.10M">$1.12M</span><span class="day">Aug 5</span><span class="tgt sw" data-r="target $1.10M" data-d="target $1.00M">target $1.10M</span>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="51px" data-dv="47px" style="bottom:51px;"></div>
         </div>
-        <div class="velo-bar" style="height:31%;">
-          <span class="amt">$999,764</span><span class="day">Aug 6</span><span class="tgt">target $1.0M</span>
-          <div class="velo-tick" style="bottom:47px;"></div>
+        <div class="velo-bar tbfill swh" data-rh="31%" data-dh="33%" style="height:31%;">
+          <span class="amt tbval sw" data-r="$999,764" data-d="$1.00M">$999,764</span><span class="day">Aug 6</span><span class="tgt sw" data-r="target $1.0M" data-d="target $1.00M">target $1.0M</span>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="47px" data-dv="47px" style="bottom:47px;"></div>
         </div>
-        <div class="velo-bar" style="height:52%;">
-          <span class="amt">$1.69M</span><span class="day">Aug 7</span><span class="tgt">target $1.80M</span>
-          <div class="velo-tick" style="bottom:84px;"></div>
+        <div class="velo-bar tbfill swh" data-rh="52%" data-dh="57%" style="height:52%;">
+          <span class="amt tbval sw" data-r="$1.69M" data-d="$1.70M">$1.69M</span><span class="day">Aug 7</span><span class="tgt sw" data-r="target $1.80M" data-d="target $2.00M">target $1.80M</span>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="84px" data-dv="93px" style="bottom:84px;"></div>
         </div>
-        <div class="velo-bar" style="height:1%;"><span class="amt">$16,283</span><span class="day">Aug 8</span></div>
-        <div class="velo-bar" style="height:2%;"><span class="amt">$69,829</span><span class="day">Aug 9</span></div>
-        <div class="velo-bar today" style="height:5%;">
-          <span class="amt">$167,612</span><span class="day">Aug 10</span><span class="tgt">target $1.2M</span>
-          <div class="velo-tick" style="bottom:56px;"></div>
+        <div class="velo-bar tbfill swh" data-rh="1%" data-dh="1%" style="height:1%;"><span class="amt tbval sw" data-r="$16,283" data-d="$20,000">$16,283</span><span class="day">Aug 8</span></div>
+        <div class="velo-bar tbfill swh" data-rh="2%" data-dh="2%" style="height:2%;"><span class="amt tbval sw" data-r="$69,829" data-d="$70,000">$69,829</span><span class="day">Aug 9</span></div>
+        <div class="velo-bar today swh" data-rh="5%" data-dh="27%" style="height:5%;">
+          <span class="amt tbval sw" data-r="$167,612" data-d="$820,000">$167,612</span><span class="day">Aug 10</span><span class="tgt sw" data-r="target $1.2M" data-d="target $1.00M">target $1.2M</span>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="56px" data-dv="47px" style="bottom:56px;"></div>
         </div>
       </div>
       <details class="aitrust">
@@ -534,44 +779,44 @@ footer b{color:var(--ink);}
       </details>
     </div>
 
-    <div class="card">
-      <h2>Daily horse race — by leader</h2>
+    <div class="card" data-key="daily-horse-race" data-title="Daily horse race — by leader">
+      <h2>Daily horse race — by leader<button class="info" type="button" aria-label="Source and freshness for the daily horse race" data-fresh="REAL: two fresh Tableau Next calls this run — 5-leader closed ACV for today and 5-leader August Commit. DEMO: invented leaders, closes and targets." data-src="Tableau Next SDM grouped by Core_Team_Users1.Plus_Twos1 — SUM(ACV_clc) for today's closes and SUM(Current_Commit_clc) for August. The org-wide daily target is the daily-target sheet row for today; each leader's own daily target is that leader's August Commit ÷ 21 working days, computed on this page." data-tabbenefit="Leader-level roll-ups come out of the certified hierarchy in a single query, so every leader's number foots to the org-wide total instead of five separately-filtered reports drifting apart.">i</button></h2>
       <div class="subtitle">Today's closed ACV vs. each leader's own daily target</div>
       <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px;">
-        <div class="kpi-box"><div class="num">$167,612</div><div class="lbl">Closed won today (org-wide)</div></div>
-        <div class="kpi-box"><div class="num">$1.2M</div><div class="lbl">Daily target (org-wide, same as KPI Tile/Velocity)</div></div>
-        <div class="kpi-box"><div class="num" style="color:var(--pink);">$1.03M</div><div class="lbl">Current daily gap (org-wide)</div></div>
+        <div class="kpi-box tbblock"><div class="num tbfill sw" data-r="$167,612" data-d="$820,000">$167,612</div><div class="lbl">Closed won today (org-wide)</div></div>
+        <div class="kpi-box"><div class="num sw" data-r="$1.2M" data-d="$1.00M">$1.2M</div><div class="lbl">Daily target (org-wide, same as KPI Tile/Velocity)</div></div>
+        <div class="kpi-box"><div class="num sw" data-r="$1.03M" data-d="$180,000" style="color:var(--pink);">$1.03M</div><div class="lbl">Current daily gap (org-wide)</div></div>
       </div>
       <div class="velo-chart velo-chart--live" style="margin-bottom:44px;">
-        <div class="velo-bar" style="height:16px;">
-          <div class="amt">$76,646</div>
-          <div class="velo-tick" style="bottom:95px;"></div>
-          <div class="day">Giovanni Crispino</div>
-          <div class="tgt">Target $466,666 <span style="color:var(--pink);">· Gap $390,021</span></div>
+        <div class="velo-bar swh" data-rh="16px" data-dh="24px" style="height:16px;">
+          <div class="amt tbval sw" data-r="$76,646" data-d="$300,000">$76,646</div>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="95px" data-dv="81px" style="bottom:95px;"></div>
+          <div class="day sw" data-r="Giovanni Crispino" data-d="Priya Shah">Giovanni Crispino</div>
+          <div class="tgt">Target <span class="sw" data-r="$466,666" data-d="$400,000">$466,666</span> <span style="color:var(--pink);">· Gap <span class="sw" data-r="$390,021" data-d="$100,000">$390,021</span></span></div>
         </div>
-        <div class="velo-bar" style="height:6px;">
-          <div class="amt">$30,822</div>
-          <div class="velo-tick" style="bottom:122px;"></div>
-          <div class="day">Whitney Hillyer</div>
-          <div class="tgt">Target $600,000 <span style="color:var(--pink);">· Gap $569,178</span></div>
+        <div class="velo-bar swh" data-rh="6px" data-dh="16px" style="height:6px;">
+          <div class="amt tbval sw" data-r="$30,822" data-d="$200,000">$30,822</div>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="122px" data-dv="61px" style="bottom:122px;"></div>
+          <div class="day sw" data-r="Whitney Hillyer" data-d="Marcus Webb">Whitney Hillyer</div>
+          <div class="tgt">Target <span class="sw" data-r="$600,000" data-d="$300,000">$600,000</span> <span style="color:var(--pink);">· Gap <span class="sw" data-r="$569,178" data-d="$100,000">$569,178</span></span></div>
         </div>
-        <div class="velo-bar" style="height:3px;">
-          <div class="amt">$16,330</div>
-          <div class="velo-tick" style="bottom:92px;"></div>
-          <div class="day">Jennifer Lagaly</div>
-          <div class="tgt">Target $452,381 <span style="color:var(--pink);">· Gap $436,051</span></div>
+        <div class="velo-bar swh" data-rh="3px" data-dh="12px" style="height:3px;">
+          <div class="amt tbval sw" data-r="$16,330" data-d="$150,000">$16,330</div>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="92px" data-dv="41px" style="bottom:92px;"></div>
+          <div class="day sw" data-r="Jennifer Lagaly" data-d="Freya Lindqvist">Jennifer Lagaly</div>
+          <div class="tgt">Target <span class="sw" data-r="$452,381" data-d="$200,000">$452,381</span> <span style="color:var(--pink);">· Gap <span class="sw" data-r="$436,051" data-d="$50,000">$436,051</span></span></div>
         </div>
-        <div class="velo-bar" style="height:4px;">
-          <div class="amt">$21,673</div>
-          <div class="velo-tick" style="bottom:140px;"></div>
-          <div class="day">Aaron Scime</div>
-          <div class="tgt">Target $690,476 <span style="color:var(--pink);">· Gap $668,804</span></div>
+        <div class="velo-bar swh" data-rh="4px" data-dh="8px" style="height:4px;">
+          <div class="amt tbval sw" data-r="$21,673" data-d="$100,000">$21,673</div>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="140px" data-dv="30px" style="bottom:140px;"></div>
+          <div class="day sw" data-r="Aaron Scime" data-d="Dana Frick">Aaron Scime</div>
+          <div class="tgt">Target <span class="sw" data-r="$690,476" data-d="$150,000">$690,476</span> <span style="color:var(--pink);">· Gap <span class="sw" data-r="$668,804" data-d="$50,000">$668,804</span></span></div>
         </div>
-        <div class="velo-bar" style="height:4px;">
-          <div class="amt">$19,972</div>
-          <div class="velo-tick" style="bottom:30px;"></div>
-          <div class="day">Valeria Capetto</div>
-          <div class="tgt">Target $147,619 <span style="color:var(--pink);">· Gap $127,647</span></div>
+        <div class="velo-bar swh" data-rh="4px" data-dh="6px" style="height:4px;">
+          <div class="amt tbval sw" data-r="$19,972" data-d="$70,000">$19,972</div>
+          <div class="velo-tick swp" data-prop="bottom" data-rv="30px" data-dv="20px" style="bottom:30px;"></div>
+          <div class="day sw" data-r="Valeria Capetto" data-d="Trent Novak">Valeria Capetto</div>
+          <div class="tgt">Target <span class="sw" data-r="$147,619" data-d="$100,000">$147,619</span> <span style="color:var(--pink);">· Gap <span class="sw" data-r="$127,647" data-d="$30,000">$127,647</span></span></div>
         </div>
       </div>
       <details class="aitrust">
@@ -582,21 +827,27 @@ footer b{color:var(--ink);}
       </details>
     </div>
 
-    <div class="card">
-      <h2>Top 10 deals closed today</h2>
+    <div class="card" data-key="closed-today" data-title="Top 10 deals closed today">
+      <h2>Top 10 deals closed today<button class="info" type="button" aria-label="Source and freshness for deals closed today" data-fresh="REAL: fresh top-10 pull for close date 2026-08-10, plus a batched SOQL cross-check run this morning. DEMO: invented deals and accounts, with no record links." data-src="Tableau Next SDM — SUM(ACV_clc) grouped by Opportunity_Name15 / Account_Name129 / Opportunity_Id34, ranked desc. Salesforce SOQL (one batched IN clause) supplies the Org62 links and the StageName cross-check that produced this run's inline flag." data-tabbenefit="The ACV on each line is the same certified measure as the headline daily total, so a deal list and the KPI tile can never quietly disagree — and the SOQL stage cross-check has something authoritative to be checked against.">i</button></h2>
       <div class="subtitle">Closed Aug 10, 2026 · ranked by ACV desc</div>
       <table class="deals">
         <tr><th>Deal</th><th>Account</th><th class="hide-ae">AE</th><th>L4 Leader</th><th class="num-cell">ACV</th></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000enshlAAA/view">Soft Media Consultores - Upgrade a MC Engagement+</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cFXoWAAW/view">Soft Media Consultores</a></td><td class="hide-ae">Ana Hita</td><td>Valeria Capetto</td><td class="num-cell">$19,190</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000iGEdZAAW/view">Groovy Aesthetic Clinic- 27 EE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00001MVEO5AAP/view">Groovy Aesthetic Clinic</a></td><td class="hide-ae">Ghadi Khalili</td><td>Giovanni Crispino</td><td class="num-cell">$13,440</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/0063y000019kWkOAAU/view">Microban Products Company Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a> <span class="tag unavail" style="margin-left:2px;transform:none;">flag</span></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/00130000006Z5anAAC/view">Microban Products Company</a></td><td class="hide-ae">Jake Pardi</td><td>Jennifer Lagaly</td><td class="num-cell">$6,024</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i7nx7AAA/view">SUPRACAFE SA - Online Sales - Your Account App - Chapi</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001dL1pMAAS/view">SUPRACAFE SA</a></td><td class="hide-ae">Jorge de Diego</td><td>Giovanni Crispino</td><td class="num-cell">$5,895</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000iGG7VAAW/view">Consumer Priority Service - Online Sales - Your Account App - Chapi</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000001L64qfAAB/view">Consumer Priority Service</a></td><td class="hide-ae">Pablo Medina</td><td>Aaron Scime</td><td class="num-cell">$5,130</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000IpQcgAAF/view">Giltner Logistics, Inc. Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000ZkxZxAAJ/view">Giltner, Inc.</a></td><td class="hide-ae">Bikna Huang</td><td>Aaron Scime</td><td class="num-cell">$5,109</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000iGVXyAAO/view">SERB Holding France_Veeva Systems_Add-On_08/21/2026</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001euor6AAA/view">SERB Holding France</a></td><td class="hide-ae">Enzo JOAQUIM</td><td>Giovanni Crispino</td><td class="num-cell">$4,560</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000IqR3cAAF/view">Cafection Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/00130000016gpYHAAY/view">Cafection</a></td><td class="hide-ae">Jad Akiki</td><td>Jennifer Lagaly</td><td class="num-cell">$4,135</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed000000kG5YAAU/view">Keyper Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cSi4UAAS/view">Keyper</a></td><td class="hide-ae">Edvinas Karalius</td><td>Giovanni Crispino</td><td class="num-cell">$3,297</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i9IcHAAU/view">Netop Business Solutions A/S - Online Sales - Your Account App - Chapi</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000GKgWHAA1/view">Netop Business Solutions A/S</a></td><td class="hide-ae">Thomas Andersen</td><td>Giovanni Crispino</td><td class="num-cell">$3,228</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000enshlAAA/view">Soft Media Consultores - Upgrade a MC Engagement+</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cFXoWAAW/view">Soft Media Consultores</a></td><td class="hide-ae">Ana Hita</td><td>Valeria Capetto</td><td class="num-cell tbval">$19,190</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000iGEdZAAW/view">Groovy Aesthetic Clinic- 27 EE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00001MVEO5AAP/view">Groovy Aesthetic Clinic</a></td><td class="hide-ae">Ghadi Khalili</td><td>Giovanni Crispino</td><td class="num-cell tbval">$13,440</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/0063y000019kWkOAAU/view">Microban Products Company Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a> <span class="tag unavail" style="margin-left:2px;transform:none;">flag</span></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/00130000006Z5anAAC/view">Microban Products Company</a></td><td class="hide-ae">Jake Pardi</td><td>Jennifer Lagaly</td><td class="num-cell tbval">$6,024</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i7nx7AAA/view">SUPRACAFE SA - Online Sales - Your Account App - Chapi</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001dL1pMAAS/view">SUPRACAFE SA</a></td><td class="hide-ae">Jorge de Diego</td><td>Giovanni Crispino</td><td class="num-cell tbval">$5,895</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000iGG7VAAW/view">Consumer Priority Service - Online Sales - Your Account App - Chapi</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000001L64qfAAB/view">Consumer Priority Service</a></td><td class="hide-ae">Pablo Medina</td><td>Aaron Scime</td><td class="num-cell tbval">$5,130</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000IpQcgAAF/view">Giltner Logistics, Inc. Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000ZkxZxAAJ/view">Giltner, Inc.</a></td><td class="hide-ae">Bikna Huang</td><td>Aaron Scime</td><td class="num-cell tbval">$5,109</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000iGVXyAAO/view">SERB Holding France_Veeva Systems_Add-On_08/21/2026</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001euor6AAA/view">SERB Holding France</a></td><td class="hide-ae">Enzo JOAQUIM</td><td>Giovanni Crispino</td><td class="num-cell tbval">$4,560</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000IqR3cAAF/view">Cafection Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/00130000016gpYHAAY/view">Cafection</a></td><td class="hide-ae">Jad Akiki</td><td>Jennifer Lagaly</td><td class="num-cell tbval">$4,135</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed000000kG5YAAU/view">Keyper Renewal Price Uplift: (ARY) Touchless Renewal Automation Only</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cSi4UAAS/view">Keyper</a></td><td class="hide-ae">Edvinas Karalius</td><td>Giovanni Crispino</td><td class="num-cell tbval">$3,297</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i9IcHAAU/view">Netop Business Solutions A/S - Online Sales - Your Account App - Chapi</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000GKgWHAA1/view">Netop Business Solutions A/S</a></td><td class="hide-ae">Thomas Andersen</td><td>Giovanni Crispino</td><td class="num-cell tbval">$3,228</td></tr>
+        <tr class="only-demo"><td>Northwind Cooperative — Service Cloud upgrade <span class="tag sim">simulated</span></td><td>Northwind Cooperative</td><td class="hide-ae">Casey Odom</td><td>Priya Shah</td><td class="num-cell tbval">$25,000</td></tr>
+        <tr class="only-demo"><td>Kestrel Analytics — Analytics seat add-on <span class="tag sim">simulated</span></td><td>Kestrel Analytics</td><td class="hide-ae">Sanne Bakker</td><td>Marcus Webb</td><td class="num-cell tbval">$20,000</td></tr>
+        <tr class="only-demo"><td>Ridgeline Outfitters — renewal price uplift <span class="tag sim">simulated</span></td><td>Ridgeline Outfitters</td><td class="hide-ae">Tomas Vik</td><td>Freya Lindqvist</td><td class="num-cell tbval">$15,000</td></tr>
+        <tr class="only-demo"><td>Marlowe &amp; Finch — online sales app <span class="tag sim">simulated</span></td><td>Marlowe &amp; Finch</td><td class="hide-ae">Diego Salgado</td><td>Dana Frick</td><td class="num-cell tbval">$10,000</td></tr>
+        <tr class="only-demo"><td>Cobalt Rail Freight — Slack Business+ <span class="tag sim">simulated</span></td><td>Cobalt Rail Freight</td><td class="hide-ae">Wren Delgado</td><td>Trent Novak</td><td class="num-cell tbval">$5,000</td></tr>
+        <tr class="only-demo"><td>Fernwood Analytics — renewal price uplift <span class="tag sim">simulated</span></td><td>Fernwood Analytics</td><td class="hide-ae">Ines Carvalho</td><td>Priya Shah</td><td class="num-cell tbval">$5,000</td></tr>
       </table>
       <details class="aitrust">
         <summary>verification details</summary>
@@ -606,21 +857,27 @@ footer b{color:var(--ink);}
       </details>
     </div>
 
-    <div class="card">
-      <h2>Top 10 open deals closing today</h2>
+    <div class="card" data-key="open-today" data-title="Top 10 open deals closing today">
+      <h2>Top 10 open deals closing today<button class="info" type="button" aria-label="Source and freshness for open deals closing today" data-fresh="REAL: fresh open-pipe pull for close date 2026-08-10 — a completely different set of deals than the prior snapshot. DEMO: invented pipeline, with no record links." data-src="Tableau Next SDM — Is_Current_Open_Pipe_clc = TRUE, close date 2026-08-10, ranked by Open_Pipe_clc desc. Stage and Manager Forecast Judgement come from Salesforce SOQL, batched across every open-pipe Id gathered this run, which is why those two columns stay black." data-tabbenefit="Open pipe is a certified measure rather than a per-report sum of Amount. That is exactly what makes the Tableau-versus-Salesforce stage mismatches flagged on this list visible instead of quietly averaged away.">i</button></h2>
       <div class="subtitle">Open pipe closing Aug 10, 2026 · ranked by open pipe desc</div>
       <table class="deals">
         <tr><th>Deal</th><th>Account</th><th class="hide-ae">AE</th><th>L4 Leader</th><th>Stage</th><th>MFJ</th><th class="num-cell">Open pipe</th></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hJIzmAAG/view">Omnidian, Inc. - Slack Biz + Upgrade (564)</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001QaQDGQA3/view">Omnidian, Inc.</a></td><td class="hide-ae">Joshua Neisse</td><td>Aaron Scime</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill in">IN</span></td><td class="num-cell">$81,216</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000cMzVBAA0/view">Kinexio- x25 Sales &amp; Service + Agentforce Marketing + PSP</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001c7FcfAAE/view">Mallcomm</a></td><td class="hide-ae">Jean O'Connor</td><td>Giovanni Crispino</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell">$52,776</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i3snJAAQ/view">Edwin Group - License Transfer &amp; additional licenses</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000yr8mUAAQ/view">Edwin Group</a></td><td class="hide-ae">Majella Doyle</td><td>Giovanni Crispino</td><td>02 - Determining Problem, Impact, Ideal</td><td><span class="pill dash">—</span></td><td class="num-cell">$26,280</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hNHllAAG/view">The Luminaire - Agentforce Marketing #FY27JumpstartSWE</a> <span class="tag unavail" style="margin-left:2px;transform:none;">flag</span></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001d1k0VAAQ/view">The Luminaire</a></td><td class="hide-ae">Tracy McCarthy</td><td>Giovanni Crispino</td><td>08 - Closed</td><td><span class="pill in">IN</span></td><td class="num-cell">$17,219</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000aH9jhAAC/view">Prime Residencial- (+5) 5 SFA EE + DE #FY27JumpstartSWE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000NfUJVAA3/view">Prime Residencial</a></td><td class="hide-ae">Matheus Silva</td><td>Valeria Capetto</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell">$16,770</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000Y5bHtAAJ/view">Urban Lanes- 7 EE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed000017zSAvAAM/view">Urban Lanes</a></td><td class="hide-ae">Ahmed Dessouky</td><td>Giovanni Crispino</td><td>02 - Determining Problem, Impact, Ideal</td><td><span class="pill up-">UP−</span></td><td class="num-cell">$14,700</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000frWJuAAM/view">We Have a meeting - Early renewal #FY27JumpstartSWE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001eSAORAA4/view">We Have a Meeting Limited</a></td><td class="hide-ae">Aoife O'Donovan</td><td>Giovanni Crispino</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell">$10,401</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hgeQ5AAI/view">AO - SBG SYSTEMS - POC Agentforce</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000ZmVfVAAV/view">SBG SYSTEMS</a></td><td class="hide-ae">Jennifer Ferrandis-Durand</td><td>Giovanni Crispino</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill up-">UP−</span></td><td class="num-cell">$9,473</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000Zzb6XAAR/view">Prudent FS- Slack Biz + Upgrade</a> <span class="tag unavail" style="margin-left:2px;transform:none;">flag</span></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001h2MTzAAM/view">Prudent FS</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>Dead - Webstore</td><td><span class="pill up-">UP−</span></td><td class="num-cell">$9,000</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i1T53AAE/view">Publiciencia - ER</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000RaqLnAAJ/view">Publiciencia</a></td><td class="hide-ae">Maite Compte</td><td>Valeria Capetto</td><td>04 - Confirming Value With Power</td><td><span class="pill in">IN</span></td><td class="num-cell">$8,356</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hJIzmAAG/view">Omnidian, Inc. - Slack Biz + Upgrade (564)</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001QaQDGQA3/view">Omnidian, Inc.</a></td><td class="hide-ae">Joshua Neisse</td><td>Aaron Scime</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill in">IN</span></td><td class="num-cell tbval">$81,216</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000cMzVBAA0/view">Kinexio- x25 Sales &amp; Service + Agentforce Marketing + PSP</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001c7FcfAAE/view">Mallcomm</a></td><td class="hide-ae">Jean O'Connor</td><td>Giovanni Crispino</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell tbval">$52,776</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i3snJAAQ/view">Edwin Group - License Transfer &amp; additional licenses</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000yr8mUAAQ/view">Edwin Group</a></td><td class="hide-ae">Majella Doyle</td><td>Giovanni Crispino</td><td>02 - Determining Problem, Impact, Ideal</td><td><span class="pill dash">—</span></td><td class="num-cell tbval">$26,280</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hNHllAAG/view">The Luminaire - Agentforce Marketing #FY27JumpstartSWE</a> <span class="tag unavail" style="margin-left:2px;transform:none;">flag</span></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001d1k0VAAQ/view">The Luminaire</a></td><td class="hide-ae">Tracy McCarthy</td><td>Giovanni Crispino</td><td>08 - Closed</td><td><span class="pill in">IN</span></td><td class="num-cell tbval">$17,219</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000aH9jhAAC/view">Prime Residencial- (+5) 5 SFA EE + DE #FY27JumpstartSWE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000NfUJVAA3/view">Prime Residencial</a></td><td class="hide-ae">Matheus Silva</td><td>Valeria Capetto</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell tbval">$16,770</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000Y5bHtAAJ/view">Urban Lanes- 7 EE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed000017zSAvAAM/view">Urban Lanes</a></td><td class="hide-ae">Ahmed Dessouky</td><td>Giovanni Crispino</td><td>02 - Determining Problem, Impact, Ideal</td><td><span class="pill up-">UP−</span></td><td class="num-cell tbval">$14,700</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000frWJuAAM/view">We Have a meeting - Early renewal #FY27JumpstartSWE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001eSAORAA4/view">We Have a Meeting Limited</a></td><td class="hide-ae">Aoife O'Donovan</td><td>Giovanni Crispino</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell tbval">$10,401</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hgeQ5AAI/view">AO - SBG SYSTEMS - POC Agentforce</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000ZmVfVAAV/view">SBG SYSTEMS</a></td><td class="hide-ae">Jennifer Ferrandis-Durand</td><td>Giovanni Crispino</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill up-">UP−</span></td><td class="num-cell tbval">$9,473</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000Zzb6XAAR/view">Prudent FS- Slack Biz + Upgrade</a> <span class="tag unavail" style="margin-left:2px;transform:none;">flag</span></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001h2MTzAAM/view">Prudent FS</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>Dead - Webstore</td><td><span class="pill up-">UP−</span></td><td class="num-cell tbval">$9,000</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i1T53AAE/view">Publiciencia - ER</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000RaqLnAAJ/view">Publiciencia</a></td><td class="hide-ae">Maite Compte</td><td>Valeria Capetto</td><td>04 - Confirming Value With Power</td><td><span class="pill in">IN</span></td><td class="num-cell tbval">$8,356</td></tr>
+        <tr class="only-demo"><td>Bright Harbor Logistics — Slack Business+ (+400) <span class="tag sim">simulated</span></td><td>Bright Harbor Logistics</td><td class="hide-ae">Casey Odom</td><td>Priya Shah</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell tbval">$80,000</td></tr>
+        <tr class="only-demo"><td>Solano Health Partners — Health Cloud expansion <span class="tag sim">simulated</span></td><td>Solano Health Partners</td><td class="hide-ae">Owen Mercer</td><td>Marcus Webb</td><td>04 - Confirming Value With Power</td><td><span class="pill in">IN</span></td><td class="num-cell tbval">$50,000</td></tr>
+        <tr class="only-demo"><td>Palisade Robotics — Agentforce pilot <span class="tag sim">simulated</span></td><td>Palisade Robotics</td><td class="hide-ae">Tomas Vik</td><td>Freya Lindqvist</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill up-">UP−</span></td><td class="num-cell tbval">$25,000</td></tr>
+        <tr class="only-demo"><td>Union Grove Foods — Service Cloud seats <span class="tag sim">simulated</span></td><td>Union Grove Foods</td><td class="hide-ae">Ines Carvalho</td><td>Dana Frick</td><td>02 - Determining Problem, Impact, Ideal</td><td><span class="pill dash">—</span></td><td class="num-cell tbval">$15,000</td></tr>
+        <tr class="only-demo"><td>Anchor Bay Systems — Data Cloud add-on <span class="tag sim">simulated</span></td><td>Anchor Bay Systems</td><td class="hide-ae">Wren Delgado</td><td>Trent Novak</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td class="num-cell tbval">$10,000</td></tr>
+        <tr class="only-demo"><td>Larkspur Dental Group — early renewal <span class="tag sim">simulated</span></td><td>Larkspur Dental Group</td><td class="hide-ae">Rafael Nunes</td><td>Priya Shah</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td class="num-cell tbval">$5,000</td></tr>
       </table>
       <details class="aitrust">
         <summary>verification details</summary>
@@ -630,14 +887,14 @@ footer b{color:var(--ink);}
       </details>
     </div>
 
-    <div class="card">
-      <h2>Deal movement</h2>
+    <div class="card tbcard" data-key="deal-movement" data-title="Deal movement">
+      <h2>Deal movement<button class="info" type="button" aria-label="Source and freshness for deal movement" data-fresh="REAL: fresh since-yesterday aggregates for this 7:55 AM PT snapshot — a Monday-morning read, taken before most of the day's pipeline activity is recorded. DEMO: invented movement counts." data-src="Tableau Next SDM — Since_Yesterday_Opportunity_Was_Won_clc, Since_Yesterday_Opportunity_Was_Lost_Deaded_Out_clc, Since_Yesterday_Opportunity_Slipped_clc and Since_Yesterday_Change_in_Open_Pipe_clc, all scoped to FQ3 / CY for Adam Alfano's org." data-tabbenefit="Movement flags are defined once, centrally, so won, lost and pushed mean the same thing in every leader's brief. That shared definition is also why this card's won-ACV is allowed to differ from a straight close-date total rather than being force-matched.">i</button></h2>
       <div class="subtitle">Since yesterday · FQ3, Adam Alfano's org</div>
       <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);">
-        <div class="kpi-box"><div class="num">18 deals</div><div class="lbl">Won since yesterday ($42,316 ACV)</div></div>
-        <div class="kpi-box"><div class="num" style="color:var(--pink);">102 deals</div><div class="lbl">Lost / deaded-out since yesterday</div></div>
-        <div class="kpi-box"><div class="num" style="color:var(--pink);">109 deals</div><div class="lbl">Pushed out since yesterday</div></div>
-        <div class="kpi-box"><div class="num">+$727,248</div><div class="lbl">Change in open pipe since yesterday</div></div>
+        <div class="kpi-box tbblock"><div class="num tbfill sw" data-r="18 deals" data-d="20 deals">18 deals</div><div class="lbl sw" data-r="Won since yesterday ($42,316 ACV)" data-d="Won since yesterday ($40,000 ACV)">Won since yesterday ($42,316 ACV)</div></div>
+        <div class="kpi-box"><div class="num sw" data-r="102 deals" data-d="100 deals" style="color:var(--pink);">102 deals</div><div class="lbl">Lost / deaded-out since yesterday</div></div>
+        <div class="kpi-box"><div class="num sw" data-r="109 deals" data-d="100 deals" style="color:var(--pink);">109 deals</div><div class="lbl">Pushed out since yesterday</div></div>
+        <div class="kpi-box tbblock"><div class="num tbfill sw" data-r="+$727,248" data-d="+$700,000">+$727,248</div><div class="lbl">Change in open pipe since yesterday</div></div>
       </div>
       <details class="aitrust">
         <summary>verification details</summary>
@@ -652,21 +909,21 @@ footer b{color:var(--ink);}
   <div>
     <span class="col-head monthly">Monthly View</span>
 
-    <div class="card">
-      <h2>Monthly &amp; Quarterly</h2>
+    <div class="card tbcard" data-key="monthly-quarterly" data-title="Monthly &amp; Quarterly">
+      <h2>Monthly &amp; Quarterly<button class="info" type="button" aria-label="Source and freshness for the monthly and quarterly tiles" data-fresh="REAL: reused from this run's own KPI windows — not re-derived here, and not carried over from a prior run. DEMO: invented placeholders." data-src="Tableau Next SDM — the CY / PY / PY-1 elapsed-date windows, the full-quarter ACV pull and Coverage_clc. YoY, velocity and historical velocity are arithmetic on those pulls, computed on this page, so they stay black." data-tabbenefit="Every tile here traces back to the same certified measures as the KPI tile at the top of the page, so the monthly and quarterly views cannot tell two different stories about the same quarter.">i</button></h2>
       <div class="subtitle">Always-visible KPI tiles — no toggle</div>
       <div style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:6px;">Monthly (MTD, Aug 1–10)</div>
       <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:16px;">
-        <div class="kpi-box"><div class="num">$9.43M</div><div class="lbl">MTD closed won</div></div>
-        <div class="kpi-box"><div class="num">$9.76M</div><div class="lbl">Same period LY (Aug1–10 2025)</div></div>
-        <div class="kpi-box"><div class="num" style="color:var(--pink);">−3.3%</div><div class="lbl">YoY</div></div>
+        <div class="kpi-box tbblock"><div class="num tbfill sw" data-r="$9.43M" data-d="$9.00M">$9.43M</div><div class="lbl">MTD closed won</div></div>
+        <div class="kpi-box tbblock"><div class="num tbfill sw" data-r="$9.76M" data-d="$9.50M">$9.76M</div><div class="lbl">Same period LY (Aug1–10 2025)</div></div>
+        <div class="kpi-box"><div class="num sw" data-r="−3.3%" data-d="−5.0%" style="color:var(--pink);">−3.3%</div><div class="lbl">YoY</div></div>
       </div>
       <div style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:6px;">Quarterly (full FQ3)</div>
       <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
-        <div class="kpi-box" style="grid-column:1;grid-row:1;"><div class="num">$12.29M</div><div class="lbl">Quarterly closed won</div></div>
-        <div class="kpi-box" style="grid-column:2;grid-row:1;"><div class="num">3.2x</div><div class="lbl">Coverage (current qtr, org-wide)</div></div>
-        <div class="kpi-box" style="grid-column:1;grid-row:2;"><div class="num">$943,323</div><div class="lbl">Velocity ($/day, CY QTD)</div></div>
-        <div class="kpi-box" style="grid-column:2;grid-row:2;"><div class="num">$892,917</div><div class="lbl">Historical velocity ($/day, 2-yr avg)</div></div>
+        <div class="kpi-box tbblock" style="grid-column:1;grid-row:1;"><div class="num tbfill sw" data-r="$12.29M" data-d="$12.00M">$12.29M</div><div class="lbl">Quarterly closed won</div></div>
+        <div class="kpi-box tbblock" style="grid-column:2;grid-row:1;"><div class="num tbfill sw" data-r="3.2x" data-d="3.0x">3.2x</div><div class="lbl">Coverage (current qtr, org-wide)</div></div>
+        <div class="kpi-box" style="grid-column:1;grid-row:2;"><div class="num sw" data-r="$943,323" data-d="$900,000">$943,323</div><div class="lbl">Velocity ($/day, CY QTD)</div></div>
+        <div class="kpi-box" style="grid-column:2;grid-row:2;"><div class="num sw" data-r="$892,917" data-d="$850,000">$892,917</div><div class="lbl">Historical velocity ($/day, 2-yr avg)</div></div>
       </div>
       <details class="aitrust">
         <summary>verification details</summary>
@@ -676,16 +933,21 @@ footer b{color:var(--ink);}
       </details>
     </div>
 
-    <div class="card">
-      <h2>FQ3 QTD &amp; Coverage — by leader</h2>
+    <div class="card tbcard" data-key="leader-coverage" data-title="FQ3 QTD &amp; Coverage — by leader">
+      <h2>FQ3 QTD &amp; Coverage — by leader<button class="info" type="button" aria-label="Source and freshness for FQ3 QTD and coverage by leader" data-fresh="REAL: one fresh multi-measure call this run; the 5-leader ACV sum lands 0.08% under the org-wide total and was left uncorrected. DEMO: invented leaders and figures." data-src="Tableau Next SDM — a single analyze_data call for the current quarter, GROUP BY Core_Team_Users1.Plus_Twos1, returning SUM(ACV_clc), SUM(Current_Commit_clc), SUM(Open_Pipe_clc) and Coverage_clc together. Gap to commit is arithmetic on this page." data-tabbenefit="Four measures in one semantic query means coverage is computed against the same pipe and commit shown next to it — there is no way to pair this week's pipe with last week's commit.">i</button></h2>
       <div class="subtitle">Single query: ACV, Commit, Open Pipe, Coverage — all four measures at once</div>
       <table class="deals">
         <tr><th>Leader</th><th class="num-cell">ACV closed</th><th class="num-cell">Qtr commit</th><th class="num-cell">Gap to commit</th><th class="num-cell">Open pipe</th><th class="num-cell">Coverage</th></tr>
-        <tr><td>Aaron Scime</td><td class="num-cell">$3.27M</td><td class="num-cell">$62.39M</td><td class="num-cell" style="color:var(--pink);">$59.12M</td><td class="num-cell">$252.97M</td><td class="num-cell">4.3x</td></tr>
-        <tr><td>Giovanni Crispino</td><td class="num-cell">$3.61M</td><td class="num-cell">$52.0M</td><td class="num-cell" style="color:var(--pink);">$48.39M</td><td class="num-cell">$101.77M</td><td class="num-cell">2.1x</td></tr>
-        <tr><td>Whitney Hillyer</td><td class="num-cell">$2.92M</td><td class="num-cell">$51.0M</td><td class="num-cell" style="color:var(--pink);">$48.08M</td><td class="num-cell">$157.06M</td><td class="num-cell">3.3x</td></tr>
-        <tr><td>Jennifer Lagaly</td><td class="num-cell">$2.09M</td><td class="num-cell">$42.5M</td><td class="num-cell" style="color:var(--pink);">$40.41M</td><td class="num-cell">$124.81M</td><td class="num-cell">3.1x</td></tr>
-        <tr><td>Valeria Capetto</td><td class="num-cell">$395,163</td><td class="num-cell">$11.0M</td><td class="num-cell" style="color:var(--pink);">$10.60M</td><td class="num-cell">$31.08M</td><td class="num-cell">2.9x</td></tr>
+        <tr class="only-real"><td>Aaron Scime</td><td class="num-cell tbval">$3.27M</td><td class="num-cell tbval">$62.39M</td><td class="num-cell" style="color:var(--pink);">$59.12M</td><td class="num-cell tbval">$252.97M</td><td class="num-cell tbval">4.3x</td></tr>
+        <tr class="only-real"><td>Giovanni Crispino</td><td class="num-cell tbval">$3.61M</td><td class="num-cell tbval">$52.0M</td><td class="num-cell" style="color:var(--pink);">$48.39M</td><td class="num-cell tbval">$101.77M</td><td class="num-cell tbval">2.1x</td></tr>
+        <tr class="only-real"><td>Whitney Hillyer</td><td class="num-cell tbval">$2.92M</td><td class="num-cell tbval">$51.0M</td><td class="num-cell" style="color:var(--pink);">$48.08M</td><td class="num-cell tbval">$157.06M</td><td class="num-cell tbval">3.3x</td></tr>
+        <tr class="only-real"><td>Jennifer Lagaly</td><td class="num-cell tbval">$2.09M</td><td class="num-cell tbval">$42.5M</td><td class="num-cell" style="color:var(--pink);">$40.41M</td><td class="num-cell tbval">$124.81M</td><td class="num-cell tbval">3.1x</td></tr>
+        <tr class="only-real"><td>Valeria Capetto</td><td class="num-cell tbval">$395,163</td><td class="num-cell tbval">$11.0M</td><td class="num-cell" style="color:var(--pink);">$10.60M</td><td class="num-cell tbval">$31.08M</td><td class="num-cell tbval">2.9x</td></tr>
+        <tr class="only-demo"><td>Priya Shah <span class="tag sim">simulated</span></td><td class="num-cell tbval">$3.00M</td><td class="num-cell tbval">$60.0M</td><td class="num-cell" style="color:var(--pink);">$57.00M</td><td class="num-cell tbval">$240.0M</td><td class="num-cell tbval">4.0x</td></tr>
+        <tr class="only-demo"><td>Marcus Webb <span class="tag sim">simulated</span></td><td class="num-cell tbval">$3.50M</td><td class="num-cell tbval">$50.0M</td><td class="num-cell" style="color:var(--pink);">$46.50M</td><td class="num-cell tbval">$100.0M</td><td class="num-cell tbval">2.0x</td></tr>
+        <tr class="only-demo"><td>Freya Lindqvist <span class="tag sim">simulated</span></td><td class="num-cell tbval">$3.00M</td><td class="num-cell tbval">$50.0M</td><td class="num-cell" style="color:var(--pink);">$47.00M</td><td class="num-cell tbval">$150.0M</td><td class="num-cell tbval">3.0x</td></tr>
+        <tr class="only-demo"><td>Dana Frick <span class="tag sim">simulated</span></td><td class="num-cell tbval">$2.00M</td><td class="num-cell tbval">$40.0M</td><td class="num-cell" style="color:var(--pink);">$38.00M</td><td class="num-cell tbval">$120.0M</td><td class="num-cell tbval">3.0x</td></tr>
+        <tr class="only-demo"><td>Trent Novak <span class="tag sim">simulated</span></td><td class="num-cell tbval">$500,000</td><td class="num-cell tbval">$10.0M</td><td class="num-cell" style="color:var(--pink);">$9.50M</td><td class="num-cell tbval">$30.0M</td><td class="num-cell tbval">3.0x</td></tr>
       </table>
       <details class="aitrust">
         <summary>verification details</summary>
@@ -695,21 +957,27 @@ footer b{color:var(--ink);}
       </details>
     </div>
 
-    <div class="card">
-      <h2>Top 10 deals closed MTD</h2>
+    <div class="card" data-key="closed-mtd" data-title="Top 10 deals closed MTD">
+      <h2>Top 10 deals closed MTD<button class="info" type="button" aria-label="Source and freshness for deals closed month-to-date" data-fresh="REAL: fresh month-to-date pull (Aug 1–10 2026); the top 10 is unchanged from the prior run because nothing that closed since is large enough to enter it. DEMO: invented deals and accounts, with no record links." data-src="Tableau Next SDM — SUM(ACV_clc) grouped by Opportunity_Name15 / Account_Name129 / Opportunity_Id34 for Aug 1–10 2026, ranked desc. Salesforce SOQL supplies the Org62 links and confirmed StageName 08 - Closed for all ten." data-tabbenefit="Because this list and the MTD headline read the same certified measure, the question why does the list not add up to the total has a real answer: the remainder is simply the deals below the top ten.">i</button></h2>
       <div class="subtitle">Closed Aug 1–10, 2026 · ranked by ACV desc</div>
       <table class="deals">
         <tr><th>Deal</th><th>Account</th><th class="hide-ae">AE</th><th>L4 Leader</th><th class="num-cell">ACV</th></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i2SCYAA2/view">[DO NOT EDIT] Slack True up - Micro1<span class="tag unavail" style="margin-left:4px;transform:none;">flag</span></a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001eU5JCAA0/view">Micro1</a></td><td class="hide-ae">Luke Inserra</td><td>Aaron Scime</td><td class="num-cell">$483,768</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000bAPO1AAO/view">Imperial Management + 275 SVC Voice FDO Sept</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001UEUwXQAX/view">Imperial Management Services Group, LLC</a></td><td class="hide-ae">Laura Morgan</td><td>Jennifer Lagaly</td><td class="num-cell">$408,000</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hqHDjAAM/view">IB - Vediaud - ADDON</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001QqLwaQAF/view">Philippe Vediaud Publicite SAS</a></td><td class="hide-ae">Axel Normand</td><td>Giovanni Crispino</td><td class="num-cell">$239,337</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gu95FAAQ/view">Agriculture Capital - NZC</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001NYgXcQAL/view">Agriculture Capital</a></td><td class="hide-ae">Greg Portnov</td><td>Whitney Hillyer</td><td class="num-cell">$142,664</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i8cQAAAY/view">Trenkwalder International AG_Connexys_Add-On</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000001M1bjPAAR/view">Trenkwalder IT Services s.r.o.</a></td><td class="hide-ae">Marijana Mrkonjic</td><td>Giovanni Crispino</td><td class="num-cell">$117,836</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000YAT5CAAX/view">Lovable SLK ENT+ Upgrade #security</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000b92a3AAA/view">Lovable Labs Incorporated</a></td><td class="hide-ae">David Erik Herman Rosén</td><td>Giovanni Crispino</td><td class="num-cell">$106,470</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000SlSojAAF/view">Avive Solutions - (+50) 50 RCA</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001dNiuKAAS/view">Avive Solutions, Inc.*</a></td><td class="hide-ae">Matt Appell</td><td>Aaron Scime</td><td class="num-cell">$100,500</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000ek4kjAAA/view">Raw Entertainment - (+350) Slack Upgrade Ent +</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cgauGAAQ/view">Raw Entertainment B.V.</a></td><td class="hide-ae">Jameson Spirgi</td><td>Whitney Hillyer</td><td class="num-cell">$89,400</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hreD3AAI/view">Undead Labs LLC- (+200) 200 SLK Bus Plus</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00001Uo2RWAAZ/view">Undead Labs LLC</a></td><td class="hide-ae">David Chavez</td><td>Aaron Scime</td><td class="num-cell">$81,000</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gHWmTAAW/view">Zydus Pharmaceuticals USA - Marketing Cloud</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001SJ5VpQAL/view">Zydus Pharmaceuticals USA</a></td><td class="hide-ae">Miguel Carbonell</td><td>Jennifer Lagaly</td><td class="num-cell">$76,511</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i2SCYAA2/view">[DO NOT EDIT] Slack True up - Micro1<span class="tag unavail" style="margin-left:4px;transform:none;">flag</span></a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001eU5JCAA0/view">Micro1</a></td><td class="hide-ae">Luke Inserra</td><td>Aaron Scime</td><td class="num-cell tbval">$483,768</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000bAPO1AAO/view">Imperial Management + 275 SVC Voice FDO Sept</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001UEUwXQAX/view">Imperial Management Services Group, LLC</a></td><td class="hide-ae">Laura Morgan</td><td>Jennifer Lagaly</td><td class="num-cell tbval">$408,000</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hqHDjAAM/view">IB - Vediaud - ADDON</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001QqLwaQAF/view">Philippe Vediaud Publicite SAS</a></td><td class="hide-ae">Axel Normand</td><td>Giovanni Crispino</td><td class="num-cell tbval">$239,337</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gu95FAAQ/view">Agriculture Capital - NZC</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001NYgXcQAL/view">Agriculture Capital</a></td><td class="hide-ae">Greg Portnov</td><td>Whitney Hillyer</td><td class="num-cell tbval">$142,664</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000i8cQAAAY/view">Trenkwalder International AG_Connexys_Add-On</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000001M1bjPAAR/view">Trenkwalder IT Services s.r.o.</a></td><td class="hide-ae">Marijana Mrkonjic</td><td>Giovanni Crispino</td><td class="num-cell tbval">$117,836</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000YAT5CAAX/view">Lovable SLK ENT+ Upgrade #security</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000b92a3AAA/view">Lovable Labs Incorporated</a></td><td class="hide-ae">David Erik Herman Rosén</td><td>Giovanni Crispino</td><td class="num-cell tbval">$106,470</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000SlSojAAF/view">Avive Solutions - (+50) 50 RCA</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001dNiuKAAS/view">Avive Solutions, Inc.*</a></td><td class="hide-ae">Matt Appell</td><td>Aaron Scime</td><td class="num-cell tbval">$100,500</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000ek4kjAAA/view">Raw Entertainment - (+350) Slack Upgrade Ent +</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cgauGAAQ/view">Raw Entertainment B.V.</a></td><td class="hide-ae">Jameson Spirgi</td><td>Whitney Hillyer</td><td class="num-cell tbval">$89,400</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hreD3AAI/view">Undead Labs LLC- (+200) 200 SLK Bus Plus</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00001Uo2RWAAZ/view">Undead Labs LLC</a></td><td class="hide-ae">David Chavez</td><td>Aaron Scime</td><td class="num-cell tbval">$81,000</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gHWmTAAW/view">Zydus Pharmaceuticals USA - Marketing Cloud</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001SJ5VpQAL/view">Zydus Pharmaceuticals USA</a></td><td class="hide-ae">Miguel Carbonell</td><td>Jennifer Lagaly</td><td class="num-cell tbval">$76,511</td></tr>
+        <tr class="only-demo"><td>Bright Harbor Logistics — Slack Business+ expansion <span class="tag sim">simulated</span></td><td>Bright Harbor Logistics</td><td class="hide-ae">Casey Odom</td><td>Priya Shah</td><td class="num-cell tbval">$500,000</td></tr>
+        <tr class="only-demo"><td>Solano Health Partners — Health Cloud + 250 seats <span class="tag sim">simulated</span></td><td>Solano Health Partners</td><td class="hide-ae">Owen Mercer</td><td>Marcus Webb</td><td class="num-cell tbval">$250,000</td></tr>
+        <tr class="only-demo"><td>Kestrel Analytics — Analytics platform upgrade <span class="tag sim">simulated</span></td><td>Kestrel Analytics</td><td class="hide-ae">Sanne Bakker</td><td>Freya Lindqvist</td><td class="num-cell tbval">$200,000</td></tr>
+        <tr class="only-demo"><td>Northwind Cooperative — Service Cloud upgrade <span class="tag sim">simulated</span></td><td>Northwind Cooperative</td><td class="hide-ae">Diego Salgado</td><td>Dana Frick</td><td class="num-cell tbval">$150,000</td></tr>
+        <tr class="only-demo"><td>Marlowe &amp; Finch — Marketing Cloud add-on <span class="tag sim">simulated</span></td><td>Marlowe &amp; Finch</td><td class="hide-ae">Tomas Vik</td><td>Trent Novak</td><td class="num-cell tbval">$100,000</td></tr>
+        <tr class="only-demo"><td>Ridgeline Outfitters — Sales Cloud + 100 seats <span class="tag sim">simulated</span></td><td>Ridgeline Outfitters</td><td class="hide-ae">Wren Delgado</td><td>Priya Shah</td><td class="num-cell tbval">$100,000</td></tr>
       </table>
       <details class="aitrust">
         <summary>verification details</summary>
@@ -719,21 +987,27 @@ footer b{color:var(--ink);}
       </details>
     </div>
 
-    <div class="card">
-      <h2>Top 10 open deals closing this month</h2>
+    <div class="card" data-key="open-month" data-title="Top 10 open deals closing this month">
+      <h2>Top 10 open deals closing this month<button class="info" type="button" aria-label="Source and freshness for open deals closing this month" data-fresh="REAL: fresh August open-pipe pull — same ten deals, same order and same amounts as the prior run. DEMO: invented pipeline, with no record links." data-src="Tableau Next SDM — Is_Current_Open_Pipe_clc = TRUE, close date Aug 1–31 2026, ranked by Open_Pipe_clc desc. Stage, Manager Forecast Judgement and the Org62 links come from Salesforce SOQL, so those columns stay black." data-tabbenefit="One certified open-pipe definition is what lets the same account legitimately appear twice as two distinct opportunities, instead of being silently de-duplicated or double-counted by a hand-built report.">i</button></h2>
       <div class="subtitle">Open pipe closing in August 2026 · ranked by open pipe desc</div>
       <table class="deals">
         <tr><th>Deal</th><th>Account</th><th class="hide-ae">AE</th><th>L4 Leader</th><th>Stage</th><th>MFJ</th><th>Close</th><th class="num-cell">Open pipe</th></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000N77U9AAJ/view">We Pink - (+100) 100 CSS + AF + MS + Signature</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cbA8FAAU/view">We Pink</a></td><td class="hide-ae">Beatrice De Barros</td><td>Valeria Capetto</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 21</td><td class="num-cell">$938,159</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000glhFsAAI/view">DC - We Pink (Flex Credits) - Add On</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cbA8FAAU/view">We Pink</a></td><td class="hide-ae">Beatrice De Barros</td><td>Valeria Capetto</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 21</td><td class="num-cell">$364,336</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000YD20QAAT/view">PACE Group - CRM, Slack, Field Service SEP45 #Holdout</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000fVPpxAAG/view">The Pace Group</a></td><td class="hide-ae">Georgia Ferguson</td><td>Giovanni Crispino</td><td>06 - Finalizing Closure</td><td><span class="pill in">IN</span></td><td>Aug 12</td><td class="num-cell">$361,957</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000XqKm1AAF/view">CEA CAPA - MCA, MI, Personalization, D360 Profiles</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001e2wpkAAA/view">CEA CAPA Education Abroad (Main Org)</a></td><td class="hide-ae">Tyler Caldwell</td><td>Aaron Scime</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell">$328,511</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gBRUYAA4/view">Procede - MC + Sales + Service + Agentforce + Slack</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00001NzZslAAF/view">Procede</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell">$310,030</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000VvADhAAN/view">SWMW Law (+100) +100 EE Sales + A4Sales + Data Cloud NL</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000flscKAAQ/view">Swmw Law</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell">$247,950</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gM4XpAAK/view">Ondas - EE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed000015jWGbAAM/view">ONDAS Israel</a></td><td class="hide-ae">Shani Ben Zvi</td><td>Giovanni Crispino</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td>Aug 20</td><td class="num-cell">$225,501</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hZN5pAAG/view">Upgrade - Atrium - Health Cloud + 50</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000yMDk5AAG/view">Atrium Group AG</a></td><td class="hide-ae">Simon Milon</td><td>Giovanni Crispino</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 28</td><td class="num-cell">$219,558</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000cvBs6AAE/view">Fastbreak AI - Marketing Cloud Loyalty Mgmt Add-on</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000C1r3PAAR/view">Fast Break Ai</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell">$216,000</td></tr>
-        <tr><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gxhDdAAI/view">Options Group - (+270)270 Sales EE + SPIFF + SHIELD</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000ZkEvbAAF/view">Options Group</a></td><td class="hide-ae">Carly MacDougall</td><td>Aaron Scime</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell">$214,920</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000N77U9AAJ/view">We Pink - (+100) 100 CSS + AF + MS + Signature</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cbA8FAAU/view">We Pink</a></td><td class="hide-ae">Beatrice De Barros</td><td>Valeria Capetto</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 21</td><td class="num-cell tbval">$938,159</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000glhFsAAI/view">DC - We Pink (Flex Credits) - Add On</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001cbA8FAAU/view">We Pink</a></td><td class="hide-ae">Beatrice De Barros</td><td>Valeria Capetto</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 21</td><td class="num-cell tbval">$364,336</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000YD20QAAT/view">PACE Group - CRM, Slack, Field Service SEP45 #Holdout</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000fVPpxAAG/view">The Pace Group</a></td><td class="hide-ae">Georgia Ferguson</td><td>Giovanni Crispino</td><td>06 - Finalizing Closure</td><td><span class="pill in">IN</span></td><td>Aug 12</td><td class="num-cell tbval">$361,957</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000XqKm1AAF/view">CEA CAPA - MCA, MI, Personalization, D360 Profiles</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013y00001e2wpkAAA/view">CEA CAPA Education Abroad (Main Org)</a></td><td class="hide-ae">Tyler Caldwell</td><td>Aaron Scime</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell tbval">$328,511</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gBRUYAA4/view">Procede - MC + Sales + Service + Agentforce + Slack</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00001NzZslAAF/view">Procede</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell tbval">$310,030</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000VvADhAAN/view">SWMW Law (+100) +100 EE Sales + A4Sales + Data Cloud NL</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000flscKAAQ/view">Swmw Law</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell tbval">$247,950</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gM4XpAAK/view">Ondas - EE</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed000015jWGbAAM/view">ONDAS Israel</a></td><td class="hide-ae">Shani Ben Zvi</td><td>Giovanni Crispino</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td>Aug 20</td><td class="num-cell tbval">$225,501</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000hZN5pAAG/view">Upgrade - Atrium - Health Cloud + 50</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000yMDk5AAG/view">Atrium Group AG</a></td><td class="hide-ae">Simon Milon</td><td>Giovanni Crispino</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 28</td><td class="num-cell tbval">$219,558</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000cvBs6AAE/view">Fastbreak AI - Marketing Cloud Loyalty Mgmt Add-on</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000C1r3PAAR/view">Fast Break Ai</a></td><td class="hide-ae">—</td><td>Aaron Scime</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell tbval">$216,000</td></tr>
+        <tr class="only-real"><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000gxhDdAAI/view">Options Group - (+270)270 Sales EE + SPIFF + SHIELD</a></td><td><a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0013000000ZkEvbAAF/view">Options Group</a></td><td class="hide-ae">Carly MacDougall</td><td>Aaron Scime</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell tbval">$214,920</td></tr>
+        <tr class="only-demo"><td>Bright Harbor Logistics — CRM + Slack + Field Service <span class="tag sim">simulated</span></td><td>Bright Harbor Logistics</td><td class="hide-ae">Casey Odom</td><td>Priya Shah</td><td>06 - Finalizing Closure</td><td><span class="pill in">IN</span></td><td>Aug 14</td><td class="num-cell tbval">$900,000</td></tr>
+        <tr class="only-demo"><td>Solano Health Partners — Health Cloud + Data Cloud <span class="tag sim">simulated</span></td><td>Solano Health Partners</td><td class="hide-ae">Owen Mercer</td><td>Marcus Webb</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill up-">UP−</span></td><td>Aug 21</td><td class="num-cell tbval">$400,000</td></tr>
+        <tr class="only-demo"><td>Kestrel Analytics — Analytics platform expansion <span class="tag sim">simulated</span></td><td>Kestrel Analytics</td><td class="hide-ae">Sanne Bakker</td><td>Freya Lindqvist</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 28</td><td class="num-cell tbval">$350,000</td></tr>
+        <tr class="only-demo"><td>Palisade Robotics — Agentforce + Service Cloud <span class="tag sim">simulated</span></td><td>Palisade Robotics</td><td class="hide-ae">Tomas Vik</td><td>Dana Frick</td><td>05 - Negotiating $$ &amp; Mutual Plan</td><td><span class="pill in">IN</span></td><td>Aug 20</td><td class="num-cell tbval">$300,000</td></tr>
+        <tr class="only-demo"><td>Union Grove Foods — Sales Cloud + 270 seats <span class="tag sim">simulated</span></td><td>Union Grove Foods</td><td class="hide-ae">Ines Carvalho</td><td>Trent Novak</td><td>04 - Confirming Value With Power</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell tbval">$250,000</td></tr>
+        <tr class="only-demo"><td>Anchor Bay Systems — Marketing Cloud loyalty add-on <span class="tag sim">simulated</span></td><td>Anchor Bay Systems</td><td class="hide-ae">Rafael Nunes</td><td>Priya Shah</td><td>03 - Validating Benefits &amp; Value</td><td><span class="pill up-">UP−</span></td><td>Aug 31</td><td class="num-cell tbval">$200,000</td></tr>
       </table>
       <details class="aitrust">
         <summary>verification details</summary>
@@ -746,35 +1020,63 @@ footer b{color:var(--ink);}
 </div>
 
 <!-- WATCHLIST -->
-<div class="watchlist">
-  <h2>Watchlist</h2>
+<div class="watchlist" data-key="watchlist" data-title="Watchlist">
+  <h2>Watchlist<button class="info" type="button" aria-label="Source and freshness for the watchlist" data-fresh="REAL: fresh UP− / OUT pull across all close dates; needed one retry after a stale response, per the standing protocol. Composition is unchanged from the prior run. DEMO: invented at-risk deals." data-src="Tableau Next SDM — Open_Pipe_clc where Manager Forecast Judgment is UP− or OUT, explicitly across all close dates with no fiscal-quarter or relative-year filter, ranked desc. Salesforce SOQL used only to verify the Org62 record links." data-tabbenefit="Judgement sits beside open pipe in the same model, so the at-risk list is a filter on the certified pipeline number rather than a separate risk report that has to be reconciled by hand every week.">i</button></h2>
   <div class="subtitle">Top open-pipe risk deals flagged UP− or OUT · no date-window filter (this pipe skews FQ4 Nov–Feb)</div>
   <div class="wgrid">
-    <div class="witem alert">
+    <div class="witem alert only-real">
       <span class="wbadge act">Act now</span>
       <div class="wtitle"><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000cjZdFAAU/view">Exclusive Networks - Demand Plan / Slack Marketing Cloud / Tableau / Agentforce #SELA</a> — <a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/001ed00000xf3KwAAI/view">EXCLUSIVE NETWORKS</a></div>
-      <div class="wamt">$1.58M open pipe</div>
+      <div class="wamt tbval">$1.58M open pipe</div>
       <div class="wnote">Largest at-risk deal on the board (UP−), grew slightly since Friday. Closes 2027-01-15 — flagged now because of size, not proximity.</div>
     </div>
-    <div class="witem alert">
+    <div class="witem alert only-real">
       <span class="wbadge act">Act now</span>
       <div class="wtitle"><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000WNCajAAH/view">HealthOne - (+400) HC A1E + DC/AF AELA + CC + MCA #FY27JumpstartSWE</a> — <a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001WADHHQA5/view">HealthOne - Medical and Wellness Centre</a></div>
-      <div class="wamt">$1.37M open pipe</div>
+      <div class="wamt tbval">$1.37M open pipe</div>
       <div class="wnote">2nd-largest at-risk deal on the board (UP−). Closes 2027-01-29 — flagged for size, not proximity.</div>
     </div>
-    <div class="witem">
+    <div class="witem only-real">
       <span class="wbadge week">This week</span>
       <div class="wtitle"><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000f0U3JAAU/view">AO - IAD - Service Cloud / AgentForce</a> — <a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001QakbnQAB/view">IAD International</a></div>
-      <div class="wamt">$1.15M open pipe</div>
+      <div class="wamt tbval">$1.15M open pipe</div>
       <div class="wnote">UP−, closes 2026-10-28 — the soonest-closing of the four, well inside FQ3.</div>
     </div>
-    <div class="witem">
+    <div class="witem only-real">
       <span class="wbadge watch">Watch</span>
       <div class="wtitle"><a class="o62" href="https://org62.lightning.force.com/lightning/r/Opportunity/006ed00000eYcVFAA0/view">PL - Laboratoire Théa - Life Science Cloud - Baybridge #inbound #AELA</a> — <a class="o62" href="https://org62.lightning.force.com/lightning/r/Account/0010M00001WJlNbQAL/view">Laboratoires Théa S.A.S.</a></div>
-      <div class="wamt">$1.22M open pipe</div>
+      <div class="wamt tbval">$1.22M open pipe</div>
       <div class="wnote">UP−, closes 2027-01-04. Smallest gap to the top two but still 7-figure exposure.</div>
     </div>
-    <div class="wcoverage">
+    <div class="witem alert only-demo">
+      <span class="wbadge act">Act now</span>
+      <div class="wtitle">Bright Harbor Logistics — CRM / Slack / Agentforce <span class="tag sim">simulated</span></div>
+      <div class="wamt tbval">$1.50M open pipe</div>
+      <div class="wnote">Invented example: largest at-risk line in this preview (UP−), on a round placeholder amount.</div>
+    </div>
+    <div class="witem alert only-demo">
+      <span class="wbadge act">Act now</span>
+      <div class="wtitle">Solano Health Partners — Health Cloud / Data Cloud <span class="tag sim">simulated</span></div>
+      <div class="wamt tbval">$1.20M open pipe</div>
+      <div class="wnote">Invented example: second-largest at-risk line in this preview (UP−).</div>
+    </div>
+    <div class="witem only-demo">
+      <span class="wbadge week">This week</span>
+      <div class="wtitle">Kestrel Analytics — Analytics platform expansion <span class="tag sim">simulated</span></div>
+      <div class="wamt tbval">$1.00M open pipe</div>
+      <div class="wnote">Invented example: soonest-closing at-risk line in this preview (UP−).</div>
+    </div>
+    <div class="witem only-demo">
+      <span class="wbadge watch">Watch</span>
+      <div class="wtitle">Palisade Robotics — Agentforce / Service Cloud <span class="tag sim">simulated</span></div>
+      <div class="wamt tbval">$800,000 open pipe</div>
+      <div class="wnote">Invented example: smallest of the four placeholder at-risk lines (UP−).</div>
+    </div>
+    <div class="wcoverage only-demo">
+      <span class="wbadge watch">Watch — coverage health</span>
+      Simulated coverage commentary for demo mode: this preview's invented coverage sits at <b>3.0x</b>, with an invented velocity of <b>$900,000/day</b> against an invented 2-year pace of <b>$850,000/day</b>, and the four placeholder deals above standing in for roughly <b>$4.5M</b> of at-risk pipe. Every number in this paragraph is fictional.
+    </div>
+    <div class="wcoverage only-real">
       <span class="wbadge watch">Watch — coverage health</span>
       Current-quarter coverage sits at <b>3.2x</b>, and full-quarter velocity (<b>$943,323/day</b>) is running only slightly ahead of the 2-year historical average pace (<b>$892,917/day</b>) — a much thinner cushion than Friday's snapshot — while the four deals above still account for over $5.3M of at-risk open pipe (all UP−). Daily closes over the past 10 days ranged from $16,283 (Aug 8) to $3.22M (Aug 1). Watch late-quarter conversion discipline and today's early-morning pace rather than pipeline volume, which remains ample.
     </div>
@@ -791,6 +1093,24 @@ footer b{color:var(--ink);}
   <b>Data sources:</b> Tableau Next SDM "Sls_Forecasting_Metrics_Expanded" (id 2SMed000001leKnGAI) via analyze_data, one call at a time, sequential — all Adam Alfano hierarchy figures scoped via Core_Team_Users1.User_Name10='Adam Alfano' unless noted. Salesforce SOQL used only for: Org62 record links and Stage/MFJ lookups (2 batched calls this run — one for all closed-deal Ids, one for all open-deal Ids). Daily target is sourced from a supplied daily-target sheet (21 business-day rows for August 2026), not from Commit÷working-days or ForecastingQuota. Monthly Commit is the actual current-month Commit (not the daily-target sheet, and not Commit÷3) — labeled "Commit," not "target." Quarterly target is unchanged and still uses the quarter Commit. <b>This run:</b> no Current_Commit_clc null-aggregate engine quirk was encountered (all grouped Commit pulls worked on the first or second attempt); three analyze_data calls returned stale/cached answers unrelated to the question asked (a Watchlist call, a Deal-movement call, and an open-deals-today call) and were each retried once successfully per the standing retry protocol, and one call timed out once (leader-level August Commit) and was retried successfully. No numbers on this page were fabricated, carried over from Friday's run without re-querying, or estimated without a labeled fallback. <b>Three anomalies flagged inline this run</b> (grey tags, not silently reconciled): Microban Products Company was returned as ACV closed today by Tableau Next but SOQL shows StageName "Dead - No Opportunity"; The Luminaire is flagged as open pipe closing this month by Tableau Next but SOQL shows StageName "08 - Closed"; Prudent FS shows open pipe today but SOQL StageName is "Dead - Webstore." The Deal Movement card's "Won since yesterday" ACV also does not reconcile with the Close_Date17=today ACV total — a methodology difference between two distinct measures, explained in that card's AI Trust note rather than force-matched. Every unavailable figure would render as a <span class="tag unavail" style="transform:none;">grey UNAVAIL tag</span> inline; none were needed this run (Yesterday's Aug 9 daily target is expected-missing per the weekend rule, not an UNAVAIL case).<br>
   Report generated live on 2026-08-10, snapshot 7:55 AM PT, for Adam Alfano's FQ3 FY2027 President Sales Pulse. Total this run: 21 Tableau Next analyze_data attempts (including 5 retries after stale/failed responses) + 2 Salesforce SOQL calls = 23 calls, run sequentially and one at a time per protocol.
 </footer>
+
+<!-- Demo-mode stand-in for the footer above, which describes the real live run. -->
+<div class="demo-footer only-demo">
+  <b>Simulated data.</b> No query was run for this view. Every figure, deal, account, AE and leader name shown in demo mode is an invented round-number placeholder, chosen so it cannot be mistaken for a live figure. The real data-source and verification notes are hidden while demo mode is on — switch the control at the top to <b>REAL</b> to see this snapshot's live-queried figures and their full provenance.
+</div>
+
+<!-- METRIC CARDS MODAL -->
+<div class="modal-overlay" id="cardModalOverlay" role="dialog" aria-modal="true" aria-label="Metric cards">
+  <div class="modal-box">
+    <h3>Metric Cards</h3>
+    <div class="modal-sub">Choose which sections show in this report. Unchecked sections stay hidden — on this browser — until you re-check them here.</div>
+    <div id="cardModalList"></div>
+    <div class="mbtns">
+      <button class="filterbtn" type="button" id="cardModalCancel">Cancel</button>
+      <button class="filterbtn primary" type="button" id="cardModalOk">OK</button>
+    </div>
+  </div>
+</div>
 
 </div>
 
@@ -813,12 +1133,32 @@ document.querySelectorAll('.filterbar').forEach(function(bar){
     if(vkey){
       var summary = group.querySelector('#velo-summary');
       // Daily targets sourced from the supplied daily-target sheet (§3a), not Commit÷working-days.
-      if(vkey === 'yesterday'){
-        summary.innerHTML = '<span class="num">$69,829</span><span class="lbl">closed yesterday (Aug 9, Sunday) · target n/a (weekend, no sheet row) · gap n/a</span>';
-      } else if(vkey === 'today'){
-        summary.innerHTML = '<span class="num">$167,612</span><span class="lbl">closed today · target $1.2M · gap $1.03M</span>';
-      } else if(vkey === 'week'){
-        summary.innerHTML = '<span class="num">$167,612</span><span class="lbl">closed this week so far (Aug 10, 1 business day elapsed) · target $1.2M · gap $1.03M</span>';
+      // The real (data-r) strings below are this run's live figures; the demo (data-d)
+      // strings are invented round-number placeholders. The active DEMO/REAL mode picks
+      // which one is written into the element, so the summary can never mix the two.
+      var VELO = {
+        yesterday: {
+          r: ['$69,829', 'closed yesterday (Aug 9, Sunday) · target n/a (weekend, no sheet row) · gap n/a'],
+          d: ['$70,000', 'closed yesterday (simulated) · target n/a (weekend, no sheet row) · gap n/a']
+        },
+        today: {
+          r: ['$167,612', 'closed today · target $1.2M · gap $1.03M'],
+          d: ['$820,000', 'closed today · target $1.00M · gap $180,000']
+        },
+        week: {
+          r: ['$167,612', 'closed this week so far (Aug 10, 1 business day elapsed) · target $1.2M · gap $1.03M'],
+          d: ['$820,000', 'closed this week so far (Aug 10, 1 business day elapsed) · target $1.00M · gap $180,000']
+        }
+      };
+      var state = VELO[vkey];
+      if(summary && state){
+        var mode = document.body.getAttribute('data-mode') === 'demo' ? 'd' : 'r';
+        var parts = summary.querySelectorAll('.sw');
+        for(var p = 0; p < parts.length && p < 2; p++){
+          parts[p].setAttribute('data-r', state.r[p]);
+          parts[p].setAttribute('data-d', state.d[p]);
+          parts[p].textContent = state[mode][p];
+        }
       }
     }
   });
@@ -830,8 +1170,15 @@ document.querySelectorAll('.filterbar').forEach(function(bar){
 // inverted (cut-and-pasted look). Runs on load so it still works if the verdict
 // text changes on a future refresh — no characters are hardcoded here.
 (function(){
-  var el = document.querySelector('.verdict .ransom-text') || document.querySelector('.verdict');
-  if(!el) return;
+  var els = document.querySelectorAll('.verdict .ransom-text');
+  if(!els.length){
+    var fallback = document.querySelector('.verdict');
+    if(!fallback) return;
+    els = [fallback];
+  }
+  for(var e = 0; e < els.length; e++){ ransomize(els[e]); }
+
+  function ransomize(el){
   var text = el.textContent;
   el.textContent = '';
   var count = 0;
@@ -858,6 +1205,279 @@ document.querySelectorAll('.filterbar').forEach(function(bar){
     }
     el.appendChild(span);
   }
+  }
+})();
+</script>
+<script>
+/* ============================================================================
+   PORTED UI FEATURES — ported from reference/pulse-zine-v16.html:
+     1. DEMO / REAL figure toggle      4. Metric Cards visibility modal
+     2. "Show Tableau" provenance tint 5. Collapsible card headers
+     3. Per-card info tooltips         6. Scroll-in card animation
+   Plain ES5, no dependencies, every lookup guarded, whole thing in a try/catch
+   so a failure here can never take the report down with it.
+   ============================================================================ */
+(function(){
+try{
+  var body = document.body;
+  document.documentElement.setAttribute('data-js','on');
+
+  var pinnedInfo = null;
+  var infoTip = document.getElementById('infoTip');
+
+  /* ---------- 1. DEMO / REAL ---------- */
+  /* Real values live in data-r, simulated placeholders in data-d. The page ships
+     with the real values in the markup and defaults to REAL, so a failure to run
+     this script leaves the truthful view on screen. */
+  function applySwaps(mode){
+    var key = mode === 'real' ? 'r' : 'd';
+    var txt = document.querySelectorAll('.sw');
+    for(var i = 0; i < txt.length; i++){
+      var v = txt[i].getAttribute('data-' + key);
+      if(v !== null) txt[i].textContent = v;
+    }
+    var h = document.querySelectorAll('.swh');
+    for(var j = 0; j < h.length; j++){
+      var hv = h[j].getAttribute('data-' + key + 'h');
+      if(hv) h[j].style.height = hv;
+    }
+    var p = document.querySelectorAll('.swp');
+    for(var k = 0; k < p.length; k++){
+      var el = p[k], prop = el.getAttribute('data-prop') || 'width';
+      var pv = el.getAttribute('data-' + key + 'v');
+      if(pv) el.style[prop] = pv;
+    }
+  }
+
+  function updateModeStatus(m){
+    var el = document.getElementById('modeStatus');
+    if(!el) return;
+    el.innerHTML = m === 'demo'
+      ? 'Showing <b>DEMO</b> — simulated placeholders, not real sales data'
+      : 'Showing <b>REAL</b> — live snapshot, Aug 10 2026, 7:55 AM PT';
+  }
+
+  function setMode(m){
+    if(m !== 'demo' && m !== 'real') m = 'real';   /* default is REAL, deliberately */
+    body.setAttribute('data-mode', m);
+    try{ sessionStorage.setItem('pulseMode', m); }catch(e){}
+    var segBtns = document.querySelectorAll('#modeSeg button');
+    for(var i = 0; i < segBtns.length; i++){
+      var on = segBtns[i].getAttribute('data-v') === m;
+      segBtns[i].classList.toggle('on', on);
+      segBtns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    applySwaps(m);
+    updateModeStatus(m);
+    if(pinnedInfo) showTipFor(pinnedInfo);
+  }
+
+  /* ---------- 2. SHOW TABLEAU ---------- */
+  function setTableau(on){
+    body.setAttribute('data-tableau', on ? 'on' : 'off');
+    try{ sessionStorage.setItem('pulseTableau', on ? 'on' : 'off'); }catch(e){}
+    var b = document.getElementById('tbBtn');
+    if(b){
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    if(pinnedInfo) showTipFor(pinnedInfo);
+  }
+
+  var initMode = 'real', initTb = 'off';
+  try{
+    var qs = window.URLSearchParams ? new URLSearchParams(location.search) : null;
+    initMode = (qs && qs.get('mode')) || sessionStorage.getItem('pulseMode') || 'real';
+    initTb = sessionStorage.getItem('pulseTableau') || 'off';
+  }catch(e){}
+
+  setMode(initMode);
+  setTableau(initTb === 'on');
+
+  var segBtns2 = document.querySelectorAll('#modeSeg button');
+  for(var s = 0; s < segBtns2.length; s++){
+    segBtns2[s].addEventListener('click', (function(bt){
+      return function(){ setMode(bt.getAttribute('data-v')); };
+    })(segBtns2[s]));
+  }
+  var tbBtn = document.getElementById('tbBtn');
+  if(tbBtn) tbBtn.addEventListener('click', function(){
+    setTableau(body.getAttribute('data-tableau') !== 'on');
+  });
+
+  /* ---------- 4. METRIC CARDS SHOW / HIDE ---------- */
+  var HIDDEN_KEY = 'pulseHiddenCards';
+  function getHidden(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]'); }catch(e){ return []; } }
+  function setHidden(arr){ try{ localStorage.setItem(HIDDEN_KEY, JSON.stringify(arr)); }catch(e){} }
+  function applyHidden(){
+    var hidden = getHidden();
+    var secs = document.querySelectorAll('[data-key]');
+    for(var i = 0; i < secs.length; i++){
+      secs[i].classList.toggle('hidden-card', hidden.indexOf(secs[i].getAttribute('data-key')) !== -1);
+    }
+  }
+  function openCardModal(){
+    var list = document.getElementById('cardModalList');
+    if(!list) return;
+    var hidden = getHidden();
+    var secs = document.querySelectorAll('[data-key]');
+    var html = '';
+    for(var i = 0; i < secs.length; i++){
+      var k = secs[i].getAttribute('data-key');
+      var t = secs[i].getAttribute('data-title') || k;
+      /* data-card, not data-key: [data-key] must keep matching only real cards,
+         or a second open would list this modal's own checkboxes as sections. */
+      html += '<div class="mrow"><input type="checkbox" id="chk-' + k + '" data-card="' + k + '"' +
+              (hidden.indexOf(k) === -1 ? ' checked' : '') + '><label for="chk-' + k + '">' + t + '</label></div>';
+    }
+    list.innerHTML = html;
+    var ov = document.getElementById('cardModalOverlay');
+    if(ov) ov.classList.add('show');
+  }
+  function closeCardModal(){
+    var ov = document.getElementById('cardModalOverlay');
+    if(ov) ov.classList.remove('show');
+  }
+  var cardsBtn = document.getElementById('cardsBtn');
+  if(cardsBtn) cardsBtn.addEventListener('click', openCardModal);
+  var cancelBtn = document.getElementById('cardModalCancel');
+  if(cancelBtn) cancelBtn.addEventListener('click', closeCardModal);
+  var overlay = document.getElementById('cardModalOverlay');
+  if(overlay) overlay.addEventListener('click', function(e){ if(e.target === overlay) closeCardModal(); });
+  var okBtn = document.getElementById('cardModalOk');
+  if(okBtn) okBtn.addEventListener('click', function(){
+    var boxes = document.querySelectorAll('#cardModalList input[type=checkbox]');
+    var hidden = [];
+    for(var i = 0; i < boxes.length; i++){
+      if(!boxes[i].checked) hidden.push(boxes[i].getAttribute('data-card'));
+    }
+    setHidden(hidden);
+    applyHidden();
+    closeCardModal();
+  });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeCardModal(); });
+  applyHidden();
+
+  /* ---------- 5. COLLAPSIBLE CARD HEADERS ---------- */
+  /* Keyed off [data-key] + its own <h2>, so any future section (including the
+     long deal tables on narrow screens) becomes collapsible just by carrying a
+     data-key — nothing here is hardcoded per card. */
+  var COLLAPSED_KEY = 'pulseCollapsedCards';
+  function getCollapsed(){ try{ return JSON.parse(localStorage.getItem(COLLAPSED_KEY) || '[]'); }catch(e){ return []; } }
+  function setCollapsedList(arr){ try{ localStorage.setItem(COLLAPSED_KEY, JSON.stringify(arr)); }catch(e){} }
+  function toggleCollapse(sec){
+    var key = sec.getAttribute('data-key');
+    var arr = getCollapsed();
+    var idx = arr.indexOf(key), collapsed;
+    if(idx === -1){ arr.push(key); collapsed = true; } else { arr.splice(idx, 1); collapsed = false; }
+    setCollapsedList(arr);
+    sec.classList.toggle('collapsed', collapsed);
+    var hd = sec.querySelector('h2');
+    if(hd) hd.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  }
+  (function initCollapsibles(){
+    var collapsedArr = getCollapsed();
+    var secs = document.querySelectorAll('[data-key]');
+    for(var i = 0; i < secs.length; i++){
+      (function(sec){
+        var header = sec.querySelector('h2');
+        if(!header || header.parentNode !== sec) return;
+        var arrow = document.createElement('span');
+        arrow.className = 'collapse-arrow';
+        arrow.innerHTML = '&#9662;';
+        header.appendChild(arrow);
+        header.setAttribute('aria-expanded', 'true');
+        header.addEventListener('click', function(e){
+          if(e.target && e.target.closest && e.target.closest('.info')) return;
+          toggleCollapse(sec);
+        });
+        if(collapsedArr.indexOf(sec.getAttribute('data-key')) !== -1){
+          sec.classList.add('collapsed');
+          header.setAttribute('aria-expanded', 'false');
+        }
+      })(secs[i]);
+    }
+  })();
+
+  /* ---------- 3. INFO TOOLTIPS ---------- */
+  function hideTip(){ if(infoTip) infoTip.classList.remove('show'); }
+  function showTipFor(el){
+    if(!infoTip || !el) return;
+    var fresh = el.getAttribute('data-fresh') || '';
+    var src = el.getAttribute('data-src') || '';
+    var benefit = el.getAttribute('data-tabbenefit') || '';
+    var h = '';
+    if(fresh) h += '<div class="sec"><b>Freshness</b>' + fresh + '</div>';
+    if(src) h += '<div class="sec"><b>Source</b>' + src + '</div>';
+    if(benefit && body.getAttribute('data-tableau') === 'on'){
+      h += '<div class="sec tab"><b>Why Tableau helps here</b>' + benefit + '</div>';
+    }
+    infoTip.innerHTML = h;
+    infoTip.classList.add('show');
+    var r = el.getBoundingClientRect();
+    var w = infoTip.offsetWidth || 320;
+    var top = r.bottom + 9;
+    var left = r.right - w;
+    if(left + w > window.innerWidth - 10) left = window.innerWidth - w - 10;
+    if(left < 10) left = 10;
+    if(top + infoTip.offsetHeight > window.innerHeight - 10){
+      top = r.top - 9 - infoTip.offsetHeight;
+    }
+    infoTip.style.top = Math.max(10, top) + 'px';
+    infoTip.style.left = left + 'px';
+  }
+  function unpinTip(){ pinnedInfo = null; hideTip(); }
+  var infoBtns = document.querySelectorAll('.info');
+  for(var ib = 0; ib < infoBtns.length; ib++){
+    (function(b){
+      b.addEventListener('click', function(e){
+        e.stopPropagation();
+        e.preventDefault();
+        if(pinnedInfo === b){ unpinTip(); return; }
+        pinnedInfo = b;
+        showTipFor(b);
+      });
+      b.addEventListener('mouseenter', function(){ if(!pinnedInfo) showTipFor(b); });
+      b.addEventListener('mouseleave', function(){ if(!pinnedInfo) hideTip(); });
+      b.addEventListener('focus', function(){ if(!pinnedInfo) showTipFor(b); });
+      b.addEventListener('blur', function(){ if(!pinnedInfo) hideTip(); });
+    })(infoBtns[ib]);
+  }
+  document.addEventListener('click', function(e){
+    if(pinnedInfo && infoTip && !infoTip.contains(e.target) && e.target !== pinnedInfo){ unpinTip(); }
+  });
+  document.addEventListener('scroll', function(){ if(pinnedInfo){ unpinTip(); } else { hideTip(); } }, true);
+
+  /* ---------- 6. SCROLL-IN ANIMATION ---------- */
+  /* translateY is composed with each card's own --rot rotation in CSS, so cards
+     keep their collage tilt while animating in. */
+  var cards = document.querySelectorAll('.card, .spotlight, .watchlist');
+  for(var ci = 0; ci < cards.length; ci++){
+    cards[ci].style.transitionDelay = Math.min(ci * 40, 320) + 'ms';
+  }
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      for(var e = 0; e < entries.length; e++){
+        var en = entries[e];
+        if(en.isIntersecting && en.intersectionRatio > 0.12){
+          en.target.classList.add('in-view');
+          io.unobserve(en.target);
+        }
+      }
+    }, {threshold:[0, 0.12, 0.3, 0.5]});
+    for(var cj = 0; cj < cards.length; cj++){ io.observe(cards[cj]); }
+  } else {
+    for(var ck = 0; ck < cards.length; ck++){ cards[ck].classList.add('in-view'); }
+  }
+}catch(err){
+  /* Never leave the report invisible because of a scripting failure. */
+  try{
+    var all = document.querySelectorAll('.card, .spotlight, .watchlist');
+    for(var i = 0; i < all.length; i++){ all[i].classList.add('in-view'); }
+    document.body.setAttribute('data-mode','real');
+  }catch(e2){}
+  try{ console.error('Business Pulse controls error:', err); }catch(e3){}
+}
 })();
 </script>
 </body>

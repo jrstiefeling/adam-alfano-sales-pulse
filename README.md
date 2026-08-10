@@ -22,6 +22,24 @@ private and do not share its contents externally.
 - Watchlist of at-risk (UP−/OUT) open-pipe deals
 - Per-card "AI Trust" verification notes documenting data sources and methodology
 
+## Interactive controls
+
+The controls bar under the masthead adds, all client-side and all persisted in
+this browser only:
+
+- **Real / Demo** — Demo swaps every headline figure and deal list for invented
+  round-number placeholders on fictional accounts, for screen-sharing or
+  walkthroughs. **Real is the default**, and demo mode shows a permanent banner;
+  the verification notes and the data-source footer are hidden while it is on,
+  because they describe the real run. `?mode=demo` forces it for one visit.
+- **Show Tableau** — tints every figure read straight from the Tableau Next SDM
+  blue. Daily-target-sheet figures, Salesforce SOQL fields (Stage, MFJ, Org62
+  links) and on-page arithmetic (gaps, YoY, velocity) deliberately stay black.
+- **Metric Cards** — check/uncheck sections to hide them.
+- **(i) on any card header** — freshness and source for that card, plus a
+  "why Tableau helps here" note while Show Tableau is on.
+- **Click a card header** — collapses it to just the header.
+
 ## Data sources
 
 Generated from Tableau Next SDM `Sls_Forecasting_Metrics_Expanded` via
