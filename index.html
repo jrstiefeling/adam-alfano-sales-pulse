@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Adam's Business Pulse — FQ3 FY27</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* The real figures ship in the markup, so a DEMO swap that runs at the end of
    <body> lets them paint first — on a slow device that flash is long enough to
@@ -50,6 +50,9 @@ body{
   font-family:var(--font-body);
   font-variant-numeric: tabular-nums;
   padding:28px 4vw 80px;
+  /* Without this iOS Safari inflates body text on rotation, which re-breaks the
+     single-line masthead below. */
+  -webkit-text-size-adjust:100%;
 }
 a{color:inherit;}
 .wrap{max-width:1280px;margin:0 auto;}
@@ -187,21 +190,26 @@ a{color:inherit;}
 .tag.sim{background:var(--paper); color:var(--ink); border:1.5px solid var(--ink); margin-left:4px;}
 
 /* TOP ROW */
+/* minmax(0,…) on the track and min-width:0 on the item are both required: a bare
+   1fr is minmax(auto,1fr), so a wide table's min-content width inflates the track
+   past the viewport and drags the whole grid off-screen. */
 .toprow{
   display:grid;
-  grid-template-columns:5fr 3fr;
+  grid-template-columns:minmax(0,5fr) minmax(0,3fr);
   gap:22px;
   margin-bottom:6px;
 }
-@media (max-width:900px){ .toprow{grid-template-columns:1fr;} }
+.toprow > *{min-width:0;}
+@media (max-width:900px){ .toprow{grid-template-columns:minmax(0,1fr);} }
 
 /* COLS */
 .cols{
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
   gap:26px;
 }
-@media (max-width:900px){ .cols{grid-template-columns:1fr;} }
+.cols > *{min-width:0;}
+@media (max-width:900px){ .cols{grid-template-columns:minmax(0,1fr);} }
 .col-head{
   font-family:var(--font-display);
   text-transform:uppercase;
@@ -275,7 +283,15 @@ a{color:inherit;}
 .kpigroup{display:none;}
 .kpigroup.active{display:block;}
 .kpi-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:6px;}
-@media (max-width:700px){.kpi-grid{grid-template-columns:1fr;}}
+.kpi-grid > *{min-width:0;}
+/* Six .kpi-grid instances carry an inline repeat(2,1fr)/repeat(3,1fr) for desktop,
+   and an inline declaration beats a media query, so the mobile template has to be
+   !important. Four tiles also carry an inline grid-column/grid-row, which under a
+   narrower template would open an implicit auto-width column. */
+@media (max-width:700px){
+  .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(148px,1fr)) !important;}
+  .kpi-grid > .kpi-box{grid-column:auto !important; grid-row:auto !important;}
+}
 .kpi-box{border-left:2px dashed var(--ink); padding-left:12px;}
 .kpi-box .num{font-size:22px; font-family:var(--font-display); background:var(--ink); color:var(--paper); padding:3px 10px; display:inline-block;}
 .kpi-box .lbl{font-family:var(--font-body); font-size:10px; text-transform:uppercase; color:var(--muted); letter-spacing:0.5px; display:block; margin-top:6px;}
@@ -312,7 +328,9 @@ table.deals th{
   letter-spacing:0.5px; color:var(--muted); border-bottom:2px solid var(--ink); padding:8px 6px;
 }
 table.deals td{padding:8px 6px; border-bottom:2px dashed var(--ink); vertical-align:top;}
-table.deals tr:hover td{background:#ded6bf;}
+/* Touch devices have no real hover, so an unguarded :hover sticks on the last
+   row tapped. */
+@media (hover:hover){ table.deals tr:hover td{background:#ded6bf;} }
 .hide-ae{color:#6f6a5f; font-size:11px;}
 .num-cell{font-weight:700; text-align:right; white-space:nowrap;}
 .pill{font-family:var(--font-display); font-size:10px; padding:2px 7px; border:1.5px solid var(--ink); display:inline-block;}
@@ -351,6 +369,7 @@ a.o62:hover{background:var(--ink); color:var(--paper); text-decoration:none;}
 }
 .watchlist .subtitle{color:#a89f8f; border-bottom:2px dashed #3d3a34; padding-bottom:10px; font-family:var(--font-body); letter-spacing:0.2px; font-size:12px;}
 .wgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:16px;}
+.wgrid > *{min-width:0;}
 @media (max-width:1000px){.wgrid{grid-template-columns:1fr 1fr;}}
 @media (max-width:600px){.wgrid{grid-template-columns:1fr;}}
 .witem{border:2px solid #3d3a34; border-radius:0; padding:14px; background:#1c1b19;}
@@ -632,6 +651,128 @@ footer{
   font-family:var(--font-body); font-size:11px; color:var(--muted); line-height:1.7;
 }
 footer b{color:var(--ink);}
+
+/* ============================================================
+   MOBILE RESPONSIVENESS
+   Placed last so the collapsed-header override below outranks
+   the desktop .card.collapsed rule at equal specificity.
+   ============================================================ */
+
+/* --- HORIZONTAL SCROLL BOX ---
+   Wide tables and the velocity chart each scroll inside their own box rather
+   than pushing the page. The box is built by script (see the wrapper IIFE) so
+   no data row is touched, and it is never put on .card itself, whose <h2> uses
+   negative margins to bleed the header bar to the card edge. */
+.hscroll{overflow-x:auto; overflow-y:hidden; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch;}
+.hscroll--table{padding-bottom:2px;}
+/* The box is a block formatting context, so the wrapped element's own margins no
+   longer collapse with its siblings. Hand the table's 6px back to the box, which
+   does collapse, so vertical rhythm is unchanged at every width. */
+.hscroll--table{margin-top:6px;}
+.hscroll--table > table.deals{margin-top:0;}
+/* Above the mobile breakpoint the chart has nothing to scroll — its only overflow
+   is the 5px bleed on the tick rules — so the box steps out of layout entirely
+   and the desktop chart keeps its original margins and its tick bleed. */
+@media (min-width:701px){ .hscroll--chart{overflow:visible;} }
+.hscroll-hint{display:none; font-family:var(--font-display); font-size:10px; letter-spacing:1px;
+  text-transform:uppercase; color:var(--muted); margin:8px 0 0;}
+
+/* --- DAILY HORSE RACE — MOBILE ROW LAYOUT ---
+   Rows are built by script from the .velo-bar markup, so the five leaders'
+   figures exist exactly once in this file. Gated on .race-ready: if the script
+   never runs, the authored bar chart stays on screen at every width. */
+.race{display:none;}
+.race-row{padding:9px 0 11px; border-top:2px dashed var(--ink);}
+.race-row:first-child{border-top:2px solid var(--ink);}
+.race-row:last-child{padding-bottom:2px;}
+.race-top{display:flex; align-items:baseline; justify-content:space-between; gap:10px;}
+.race-name{font-family:var(--font-body); font-size:13px; line-height:1.2; min-width:0; overflow-wrap:anywhere;}
+.race-amt{font-family:var(--font-display); font-size:20px; line-height:1; white-space:nowrap; flex:0 0 auto;}
+.race-track{position:relative; height:14px; margin-top:8px; background:var(--paper);
+  border:2px solid var(--ink); border-right-width:4px;}
+.race-fill{display:block; height:100%; min-width:4px; background:var(--acid); border-right:2px solid var(--ink);}
+.race-tgt{font-family:var(--font-body); font-size:10.5px; line-height:1.3; color:var(--smear);
+  margin-top:6px; letter-spacing:0.2px;}
+
+/* --- LONG-TOKEN WRAPPING ---
+   The AI Trust notes carry identifiers longer than the mobile line box.
+   "anywhere" rather than "break-word" because it also lowers the min-content
+   contribution, which keeps the grid fix above robust. */
+details.aitrust .note,
+table.deals td,
+.wtitle,
+.wnote,
+.spotlight.compact .deal,
+footer{overflow-wrap:anywhere;}
+
+@media (max-width:700px){
+  .hscroll-hint{display:block;}
+  .hscroll--table > table.deals{font-size:12px;}
+  .hscroll--table > table.deals th,
+  .hscroll--table > table.deals td{padding:7px 5px;}
+  /* Load-bearing: without a floor the table collapses to min-content and every
+     text column wraps to three or four lines. */
+  .hscroll--table > table.deals[data-cols="5"]{min-width:520px;}
+  .hscroll--table > table.deals[data-cols="6"]{min-width:520px;}
+  .hscroll--table > table.deals[data-cols="7"]{min-width:640px;}
+  .hscroll--table > table.deals[data-cols="8"]{min-width:720px;}
+  .hscroll--table > table.deals td:first-child{min-width:150px;}
+  .hscroll--table > table.deals td:nth-child(2){min-width:110px;}
+
+  /* The wrapper's own padding carries the labels: overflow-y:hidden clips at the
+     padding box, and a child's margin does not reliably extend that clip area. */
+  .hscroll--chart{padding-bottom:58px;}
+  .hscroll--chart .velo-chart{margin:14px 0 0; min-width:520px;}
+  .velo-chart{gap:6px;}
+  .velo-bar{min-width:46px;}
+  .velo-bar .amt{font-size:9px;}
+  .velo-bar .day{font-size:9px; bottom:-16px;}
+  .velo-bar .tgt{font-size:8.5px; bottom:-48px; white-space:normal; line-height:1.2;}
+  .velo-tick{left:0; right:0;}
+  /* Content box stays 140px so every inline bar height and every velo-tick
+     bottom offset stays pixel-exact, while the tallest bar's .amt moves inside
+     the torn clip region instead of being painted away above it. */
+  .velo-chart.torn{height:174px; padding-top:34px;}
+
+  .race-ready .race{display:block; margin-top:12px;}
+  .race-ready .velo-chart--live{display:none;}
+}
+
+@media (max-width:600px){
+  /* A fixed 12px gutter clears the worst-case 10.6px of shadow offset plus
+     rotation spill, so nothing is shaved off the card edges. */
+  body{padding:20px calc(12px + env(safe-area-inset-right)) calc(56px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));}
+
+  .masthead{display:block; padding-bottom:12px; margin-bottom:14px;}
+  .masthead h1{font-size:clamp(24px,7.4vw,34px); line-height:1; letter-spacing:-0.5px; white-space:nowrap;}
+  .masthead .kicker{font-size:10px; letter-spacing:1.5px; padding:3px 7px; margin-bottom:6px;}
+  .masthead .meta{text-align:left; font-size:11px; line-height:1.55; margin-top:10px;}
+
+  .card{padding:16px 14px; margin-bottom:18px;}
+  .card h2{margin:-16px -14px 12px; padding:12px 88px 12px 14px; font-size:17px; letter-spacing:1px; min-height:44px;}
+  .card .subtitle{font-size:11px; padding-bottom:8px; margin-bottom:12px;}
+
+  .spotlight{padding:16px 14px;}
+  .spotlight h2{margin:-16px -14px 12px; padding:12px 88px 12px 14px; font-size:17px; letter-spacing:1px; min-height:44px;}
+
+  .watchlist{padding:16px 14px;}
+  .watchlist h2{margin:-16px -14px 14px; padding:12px 88px 12px 14px; font-size:17px; letter-spacing:1px; min-height:44px;}
+
+  /* The desktop -20px / -24px are tied to desktop card padding and would
+     over-pull once the mobile padding shrinks. */
+  .card.collapsed > h2,
+  .spotlight.collapsed > h2,
+  .watchlist.collapsed > h2{margin-bottom:-16px;}
+
+  .verdict{padding:10px 12px; font-size:14px;}
+
+  .hero{gap:10px;}
+  .hero .num{font-size:32px; padding:5px 12px;}
+  .hero .lbl{flex:1 1 100%;}
+
+  .statline{gap:12px;}
+  .statline > div{flex:1 1 140px;}
+}
 </style>
 </head>
 <body data-mode="real" data-tableau="off">
@@ -1216,6 +1357,31 @@ document.querySelectorAll('.filterbar').forEach(function(bar){
 });
 </script>
 <script>
+/* Wide tables and the velocity chart each get their own horizontal scroll box.
+   Built here rather than in the markup so no data row is edited. */
+(function(){
+  function wrap(el, cls, hint){
+    var box = document.createElement('div');
+    box.className = 'hscroll ' + cls;
+    el.parentNode.insertBefore(box, el);
+    box.appendChild(el);
+    var h = document.createElement('div');
+    h.className = 'hscroll-hint';
+    h.textContent = hint;
+    box.parentNode.insertBefore(h, box);
+  }
+  document.querySelectorAll('table.deals').forEach(function(t){
+    t.setAttribute('data-cols', t.rows[0] ? t.rows[0].cells.length : 0);
+    wrap(t, 'hscroll--table', 'Swipe table \u2192');
+  });
+  /* The horse-race chart is deliberately excluded: it is replaced by rows and
+     hidden on phones, and a wrapped-but-hidden chart would strand its hint. */
+  document.querySelectorAll('.velo-chart:not(.velo-chart--live)').forEach(function(c){
+    wrap(c, 'hscroll--chart', 'Swipe chart \u2192');
+  });
+})();
+</script>
+<script>
 // RANSOM-NOTE VERDICT — splits the verdict into per-character spans with a small
 // random rotation and size jitter, and inverts the first word of each sentence
 // (cut-and-pasted look). Inverting every third character instead, as this did
@@ -1323,6 +1489,108 @@ document.querySelectorAll('.filterbar').forEach(function(bar){
       el.appendChild(frag);
     }catch(err){}
   }
+})();
+</script>
+<script>
+/* --- DAILY HORSE RACE — MOBILE ROW LAYOUT ---
+   Phones get a labelled row per leader instead of the five-bar chart, which is
+   unreadable at 393px. Rows are built from the authored .velo-bar markup, so every
+   figure exists exactly once in this file: each visible node is a cloneNode(true)
+   of the authored node and no string is reformatted here. The cloned .sw and .tbval
+   hooks keep the rows in step with the Real/Demo and Why Tableau toggles. Only the
+   track fill is computed, and it is published as a .swp element so applySwaps()
+   re-derives it per mode. If any leader cannot be read, the transform is abandoned
+   and the chart stays. */
+(function(){
+  var chart = document.querySelector('.velo-chart--live');
+  if(!chart || !chart.closest) return;
+  var card = chart.closest('.card');
+  if(!card) return;
+  var bars = chart.querySelectorAll('.velo-bar');
+  if(!bars.length) return;
+
+  function money(s){
+    var m = /\$\s*([0-9][0-9,]*(?:\.[0-9]+)?)\s*([MK])?/.exec(s || '');
+    if(!m) return NaN;
+    var n = parseFloat(m[1].replace(/,/g, ''));
+    if(!isFinite(n)) return NaN;
+    if(m[2] === 'M') n *= 1000000;
+    else if(m[2] === 'K') n *= 1000;
+    return n;
+  }
+  /* Prefer the mode-independent data-r / data-d attributes so the ratio is right
+     whichever mode is active at build time; fall back to the rendered text. */
+  function figure(el, key){
+    if(!el) return NaN;
+    var raw = el.getAttribute ? el.getAttribute('data-' + key) : null;
+    return money(raw !== null ? raw : el.textContent);
+  }
+  function ratio(closed, target){
+    if(!isFinite(closed) || !isFinite(target) || target <= 0) return null;
+    var p = closed / target * 100;
+    if(p < 0) p = 0;
+    if(p > 100) p = 100;
+    return p.toFixed(2) + '%';
+  }
+  /* Clone verbatim, then swap only the chart's positioning class for the row's.
+     sw / tbval and every other hook are deliberately preserved. */
+  function lift(node, cls){
+    var c = node.cloneNode(true);
+    c.classList.remove('amt');
+    c.classList.remove('day');
+    c.classList.remove('tgt');
+    c.classList.add(cls);
+    return c;
+  }
+
+  var demo = document.body.getAttribute('data-mode') === 'demo';
+  var rows = [], i;
+  for(i = 0; i < bars.length; i++){
+    var bar = bars[i];
+    var dayEl = bar.querySelector('.day');
+    var amtEl = bar.querySelector('.amt');
+    var tgtEl = bar.querySelector('.tgt');
+    if(!dayEl || !amtEl || !tgtEl) return; /* fail safe: keep the chart */
+
+    var sws = tgtEl.querySelectorAll('.sw'); /* [0] target, [1] gap */
+    var tgtFig = sws.length ? sws[0] : tgtEl;
+    var rv = ratio(figure(amtEl, 'r'), figure(tgtFig, 'r'));
+    var dv = ratio(figure(amtEl, 'd'), figure(tgtFig, 'd'));
+    if(!rv) return; /* fail safe: keep the chart */
+
+    var row = document.createElement('div');
+    row.className = 'race-row';
+
+    var top = document.createElement('div');
+    top.className = 'race-top';
+    top.appendChild(lift(dayEl, 'race-name'));
+    top.appendChild(lift(amtEl, 'race-amt'));
+    row.appendChild(top);
+
+    var track = document.createElement('div');
+    track.className = 'race-track';
+    track.setAttribute('aria-hidden', 'true'); /* figures are printed adjacent */
+    var fill = document.createElement('span');
+    fill.className = 'race-fill swp';
+    fill.setAttribute('data-prop', 'width');
+    fill.setAttribute('data-rv', rv);
+    fill.setAttribute('data-dv', dv || rv);
+    fill.style.width = demo ? (dv || rv) : rv;
+    track.appendChild(fill);
+    row.appendChild(track);
+
+    row.appendChild(lift(tgtEl, 'race-tgt'));
+    rows.push(row);
+  }
+
+  var box = document.createElement('div');
+  box.className = 'race';
+  for(i = 0; i < rows.length; i++){ box.appendChild(rows[i]); }
+  /* .race must be a direct child of .card so the collapse rule
+     [data-key].collapsed > *:not(h2) hides it along with everything else. */
+  var anchor = chart.parentNode === card ? chart : chart.parentNode;
+  card.insertBefore(box, anchor.nextSibling);
+  card.classList.add('race-ready');
 })();
 </script>
 <script>
@@ -1473,6 +1741,28 @@ try{
      long deal tables on narrow screens) becomes collapsible just by carrying a
      data-key — nothing here is hardcoded per card. */
   var COLLAPSED_KEY = 'pulseCollapsedCards';
+  /* One-time mobile default: start the four long deal tables collapsed.
+     Seeded once per device via pulseMobileDefaultsV1, so a user who expands
+     a table never has it re-collapsed on them. */
+  (function seedMobileCollapseDefaults(){
+    var MARK = 'pulseMobileDefaultsV1', KEY = 'pulseCollapsedCards';
+    try{
+      if(localStorage.getItem(MARK)) return;
+      if(!window.matchMedia('(max-width:600px)').matches) return;
+      var cur;
+      try{ cur = JSON.parse(localStorage.getItem(KEY) || '[]') || []; }catch(e){ cur = []; }
+      document.querySelectorAll('[data-key]').forEach(function(sec){
+        var h = sec.querySelector(':scope > h2, :scope > .hd, :scope > .ahd');
+        var t = (h ? h.textContent : '').trim().toUpperCase();
+        if(t.indexOf('TOP 10') === 0){
+          var k = sec.getAttribute('data-key');
+          if(cur.indexOf(k) === -1) cur.push(k);
+        }
+      });
+      localStorage.setItem(KEY, JSON.stringify(cur));
+      localStorage.setItem(MARK, '1');
+    }catch(e){}
+  })();
   function getCollapsed(){ try{ return JSON.parse(localStorage.getItem(COLLAPSED_KEY) || '[]'); }catch(e){ return []; } }
   function setCollapsedList(arr){ try{ localStorage.setItem(COLLAPSED_KEY, JSON.stringify(arr)); }catch(e){} }
   function toggleCollapse(sec){
