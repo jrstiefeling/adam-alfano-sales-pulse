@@ -34,3 +34,9 @@ stage/forecast-judgment lookups. See the report footer and each card's
 Each report is a point-in-time snapshot (see the masthead for the exact
 timestamp). To add a new snapshot, replace `index.html` and commit — git
 history preserves prior snapshots for comparison over time.
+
+## Reference material
+
+`reference/` holds prior design iterations kept only for UI/UX reference
+(not live data sources). See `reference/README.md` for a breakdown of the
+notable UI patterns in each one.

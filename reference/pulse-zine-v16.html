@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Business Pulse</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Pulse">
+<meta name="theme-color" content="#EDEAE1">
+<meta name="format-detection" content="telephone=no">
+<style>
+:root{
+  --paper:#EDEAE1;--paper2:#E1DDD2;--ink:#0B0B0B;--smear:#4A4844;
+  --faint:#8C887E;--pink:#FF1E56;--acid:#D8FF00;--tab:#2F5FED;
+  --poster:Impact,Haettenschweiler,"Arial Narrow Bold","Helvetica Neue",Helvetica,sans-serif;
+  --zine:"American Typewriter","Courier New",Courier,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--zine);
+  -webkit-text-size-adjust:100%;
+  background-image:repeating-linear-gradient(0deg,rgba(11,11,11,.03) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,rgba(11,11,11,.022) 0 1px,transparent 1px 4px);}
+.wrap{max-width:480px;margin:0 auto;padding:env(safe-area-inset-top) 12px calc(44px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:var(--poster);font-weight:400;text-transform:uppercase;letter-spacing:.01em}
+.eb{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--smear)}
+.eb.inv{background:var(--ink);color:var(--paper);padding:3px 6px;display:inline-block}
+.tab{font-variant-numeric:tabular-nums}
+
+header{padding:20px 0 14px}
+h1{font-size:52px;line-height:.8}
+h1 em{font-style:normal;background:var(--ink);color:var(--paper);padding:0 7px}
+.strip{margin-top:14px;border-top:4px solid var(--ink);border-bottom:2px solid var(--ink);
+  padding:6px 0;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.05em}
+
+/* controls */
+.ctrl{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.seg{display:flex;border:2px solid var(--ink);flex-shrink:0}
+.seg button{background:var(--paper);border:none;font-family:var(--zine);font-size:10px;font-weight:bold;
+  letter-spacing:.08em;text-transform:uppercase;padding:8px 13px;cursor:pointer;color:var(--ink)}
+.seg button.on{background:var(--ink);color:var(--paper)}
+.ghostbtn{background:transparent;border:2px solid var(--ink);font-family:var(--zine);font-size:9.5px;font-weight:bold;
+  letter-spacing:.05em;text-transform:uppercase;padding:8px 10px;cursor:pointer;color:var(--ink)}
+.ghostbtn.on{background:var(--tab);border-color:var(--tab);color:#fff}
+.modenote{font-size:10px;color:var(--smear);margin-top:9px;letter-spacing:.02em}
+.legend{font-size:9px;color:var(--smear);margin-top:5px;letter-spacing:.02em;line-height:1.5}
+.legend b{font-weight:bold}
+
+/* card visibility toggle */
+.hidden-card{display:none!important}
+
+/* collapsible headers */
+.collapsible-hd{cursor:pointer}
+.collapse-arrow{position:absolute;top:10px;right:34px;font-size:11px;color:var(--paper);
+  transition:transform .2s ease;pointer-events:none}
+.ahd .collapse-arrow{top:15px;color:var(--acid)}
+.collapsed .collapse-arrow{transform:rotate(-90deg)}
+[data-key].collapsed{margin-bottom:14px}
+[data-key].collapsed>*:not(.hd):not(.ahd){display:none}
+.synth-hd{margin:0}
+.synth-hd h2{margin:0}
+
+/* metric cards modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(11,11,11,.6);z-index:95;
+  display:none;align-items:flex-end;justify-content:center;padding:0}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--paper);border:3px solid var(--ink);box-shadow:0 -5px 0 var(--ink);
+  width:100%;max-width:480px;max-height:82vh;overflow-y:auto;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+.modal-box h3{font-size:26px;line-height:.9}
+.modal-sub{font-size:10px;color:var(--smear);margin-top:6px;margin-bottom:8px;letter-spacing:.02em}
+.mrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:2px dashed var(--ink)}
+.mrow:first-of-type{border-top:none}
+.mrow input{width:19px;height:19px;flex-shrink:0;accent-color:var(--ink)}
+.mrow label{font-size:12px;flex:1}
+.mbtns{display:flex;gap:8px;margin-top:14px;padding-top:13px;border-top:3px solid var(--ink)}
+.mbtns button{flex:1;font-family:var(--zine);font-size:11px;font-weight:bold;letter-spacing:.08em;
+  text-transform:uppercase;padding:11px;border:2px solid var(--ink);cursor:pointer;background:var(--paper);color:var(--ink)}
+.mbtns button.primary{background:var(--ink);color:var(--paper)}
+
+body[data-mode="demo"] .only-real{display:none!important}
+body[data-mode="real"] .only-demo{display:none!important}
+
+/* tableau colorization (default = standard ink, on = blue) */
+.tbval{color:var(--ink)}
+body[data-tableau="on"] .tbval{color:var(--tab)}
+.tbfill{background:var(--ink)}
+body[data-tableau="on"] .tbfill{background:var(--tab)}
+.tbfillh{background:repeating-linear-gradient(45deg,var(--ink) 0 3px,transparent 3px 6px)}
+body[data-tableau="on"] .tbfillh{background:repeating-linear-gradient(45deg,var(--tab) 0 3px,transparent 3px 6px)}
+.tbtrk{border:2px solid var(--ink)}
+body[data-tableau="on"] .tbtrk{border-color:var(--tab)}
+.tbblock{padding-left:10px;border-left:3px solid var(--faint)}
+body[data-tableau="on"] .tbblock{border-left-color:var(--tab)}
+.tbcard .hd{background:var(--ink)}
+body[data-tableau="on"] .tbcard .hd{background:var(--tab)}
+
+/* info icon + tooltip */
+.hd,.ahd{position:relative}
+.info{position:absolute;top:9px;right:10px;width:19px;height:19px;border-radius:50%;
+  border:2px solid var(--acid);color:var(--acid);background:transparent;
+  font-family:var(--zine);font-size:11px;font-weight:bold;line-height:1;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.info:active{background:var(--acid);color:var(--ink)}
+#infoTip{position:fixed;max-width:240px;background:var(--paper);border:2px solid var(--ink);
+  box-shadow:4px 4px 0 var(--ink);padding:9px 10px;font-size:9.5px;line-height:1.6;
+  color:var(--ink);z-index:99;display:none}
+#infoTip b{color:var(--ink);display:block;font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1px}
+#infoTip .sec{margin-bottom:7px;color:var(--ink)}
+#infoTip .sec:last-child{margin-bottom:0}
+#infoTip .sec.tab{border-top:2px dashed var(--tab);padding-top:6px;margin-top:2px}
+#infoTip .sec.tab b{color:var(--tab)}
+#infoTip.show{display:block}
+
+.card{background:var(--paper);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);margin-bottom:18px;
+  opacity:0;transform:translateY(16px);transition:opacity .55s ease,transform .55s ease}
+.card.in-view{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.card{transition:none;opacity:1;transform:none}}
+.r1{transform:rotate(-.5deg)}.r2{transform:rotate(.4deg)}.r3{transform:rotate(-.3deg)}
+.r4{transform:rotate(.45deg)}.r5{transform:rotate(-.35deg)}.r6{transform:rotate(.3deg)}
+.r7{transform:rotate(-.25deg)}
+.card.in-view.r1{transform:rotate(-.5deg) translateY(0)}
+.card.in-view.r2{transform:rotate(.4deg) translateY(0)}
+.card.in-view.r3{transform:rotate(-.3deg) translateY(0)}
+.card.in-view.r4{transform:rotate(.45deg) translateY(0)}
+.card.in-view.r5{transform:rotate(-.35deg) translateY(0)}
+.card.in-view.r6{transform:rotate(.3deg) translateY(0)}
+.card.in-view.r7{transform:rotate(-.25deg) translateY(0)}
+.hd{background:var(--ink);padding:9px 34px 9px 11px}
+.hd h2{font-size:19px;color:var(--paper);line-height:1.05}
+.hd p{font-size:10px;color:var(--faint);margin-top:3px}
+.bd{padding:12px}
+
+.hero{font-family:var(--poster);font-size:66px;line-height:.86;margin-top:6px;
+  background:var(--ink);color:var(--paper);display:inline-block;padding:5px 11px 9px}
+.sub{font-size:10.5px;color:var(--smear);margin-top:8px;letter-spacing:.04em}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:15px;padding-top:13px;border-top:2px dashed var(--ink)}
+.big{font-family:var(--poster);line-height:.92;margin-top:5px}
+.s22{font-size:22px}.s26{font-size:26px}.s30{font-size:30px}.s34{font-size:34px}
+.sm{font-size:10px;color:var(--smear);margin-top:4px}
+.mos{display:flex;gap:12px;margin-top:13px;padding-top:11px;border-top:2px dashed var(--ink)}
+.mos>div{flex:1}.mos b{display:block;font-family:var(--poster);font-size:20px;font-weight:400;margin-top:3px}
+
+.chartbox{margin-top:14px;padding-top:12px;border-top:2px dashed var(--ink)}
+.tape{background:var(--paper2);border-top:3px solid var(--ink);padding:12px 10px 15px}
+.bars{display:flex;align-items:flex-end;gap:1.5px;height:66px;margin-top:9px}
+.bars i{flex:1;background:var(--ink)}
+.bars i.f{background:transparent;border:1px solid var(--faint)}
+.bars i.n{background:var(--acid);border:2px solid var(--ink)}
+.tf{display:flex;justify-content:space-between;font-size:9px;color:var(--smear);margin-top:7px;letter-spacing:.06em}
+.tf b{background:var(--acid);padding:1px 5px;font-weight:400}
+.chartcap{font-size:9.5px;color:var(--smear);margin-top:8px;font-style:italic}
+
+.row{padding:9px 0;border-top:2px dashed var(--ink);display:flex;gap:10px;align-items:flex-start}
+.row .l{flex:1;min-width:0}
+.row .nm{font-size:12.5px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .mt{font-size:10px;color:var(--smear);margin-top:4px}
+.row .nt{font-size:9.5px;color:var(--smear);margin-top:3px}
+.row .r{text-align:right;flex-shrink:0}
+.row .am{font-family:var(--poster);font-size:20px;line-height:1}
+.row .am.hot{background:var(--pink);color:var(--paper);padding:1px 5px}
+.row .wh{font-size:9.5px;color:var(--smear);margin-top:4px}
+.tg{font-size:9px;letter-spacing:.1em;background:var(--ink);color:var(--paper);padding:2px 4px;margin-right:5px}
+
+.qr{padding:9px 0;border-top:2px dashed var(--ink);display:flex;align-items:center}
+.qr .a{flex:1;font-size:12px;font-weight:bold}
+.qr .b{font-size:10px;color:var(--smear);margin-right:10px}
+.qr .c{font-family:var(--poster);font-size:18px}
+
+.mt3{margin-top:14px;padding-top:12px;border-top:2px dashed var(--ink)}
+.mtr{margin-bottom:13px}
+.mtr .t{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.mtr .lb{font-size:10.5px;color:var(--smear)}
+.mtr .vl{font-family:var(--poster);font-size:16px}
+.trk{height:10px;border:2px solid var(--ink);position:relative}
+.trk b{display:block;height:100%;background:repeating-linear-gradient(45deg,var(--ink) 0 3px,transparent 3px 6px)}
+.trk u{position:absolute;left:80%;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.stack{display:flex;height:24px;border:2px solid var(--ink);margin-top:9px;overflow:hidden}
+.leg{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:9px;color:var(--smear);letter-spacing:.03em}
+
+.cbox{padding-bottom:13px;border-bottom:3px solid var(--ink);margin-bottom:14px}
+.cin{display:flex;align-items:center;gap:6px;margin-top:8px}
+.cin .dol{font-family:var(--poster);font-size:26px}
+.cin input{font-family:var(--poster);font-size:26px;width:104px;padding:5px 8px;
+  background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:0;-webkit-appearance:none}
+.cin .mm{font-family:var(--poster);font-size:26px;margin-right:2px}
+.cbtn{background:var(--ink);color:var(--paper);border:none;font-family:var(--zine);font-size:12px;
+  font-weight:bold;letter-spacing:.12em;text-transform:uppercase;padding:11px 13px;min-height:46px;cursor:pointer}
+.cbtn:active{background:var(--pink)}
+.vbox{margin-top:14px;padding:13px 12px;border:3px solid var(--ink)}
+.vbox.bad{background:var(--pink)}
+.vw span{font-family:var(--poster);display:inline-block;line-height:.92;text-transform:uppercase;margin-right:1px}
+.vw span.iv{background:var(--ink);color:var(--paper);padding:1px 5px 3px}
+.vsub{font-size:11px;margin-top:10px;letter-spacing:.03em}
+.gap{font-size:11px;color:var(--smear);margin-top:7px}
+.alert{border-width:5px;box-shadow:7px 7px 0 var(--ink);transform:rotate(.2deg)}
+.alert.in-view{transform:rotate(.2deg) translateY(0)}
+.ahd{background:var(--ink);padding:13px 34px 15px 12px}
+.ahd h2{font-size:38px;line-height:.88;color:var(--paper)}
+.ahd p{font-size:10px;color:var(--acid);margin-top:8px;letter-spacing:.09em}
+.it{border-top:3px solid var(--ink);padding-top:11px;margin-top:11px;display:flex;gap:9px;align-items:flex-start}
+.it .n{font-family:var(--poster);font-size:28px;line-height:.8;color:var(--faint);width:26px;flex-shrink:0}
+.it .b{flex:1;min-width:0}
+.it h3{font-size:21px;line-height:1.02;margin-top:7px}
+.it .w{font-size:11px;color:var(--smear);margin-top:6px;line-height:1.55}
+.it .r{text-align:right;flex-shrink:0}
+.it .am{font-family:var(--poster);font-size:25px;line-height:1}
+.it .ct{font-size:9.5px;color:var(--smear);margin-top:3px}
+.sv{font-size:9px;letter-spacing:.13em;padding:3px 6px;font-weight:bold}
+.sv.a{background:var(--pink);color:var(--paper)}
+.sv.b{background:var(--acid);color:var(--ink)}
+.sv.c{background:var(--paper2);border:2px solid var(--ink)}
+.ft{font-size:10px;line-height:1.7;color:var(--smear);margin-top:13px;padding-top:11px;border-top:2px solid var(--ink)}
+footer{font-size:9.5px;line-height:1.85;color:var(--smear);border-top:4px solid var(--ink);
+  padding-top:13px;text-transform:uppercase;letter-spacing:.05em}
+.closecard{border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);margin-bottom:18px;
+  opacity:0;transform:translateY(16px);transition:opacity .55s ease,transform .55s ease}
+.closecard.in-view{opacity:1;transform:none}
+</style>
+</head>
+<body data-mode="demo" data-tableau="off">
+<div id="infoTip"></div>
+<div class="wrap">
+
+<header>
+  <h1>Business<br><em>Pulse</em></h1>
+  <div style="margin-top:11px"><span class="eb inv">SMB - EVP &middot; ACV BASIS</span></div>
+  <div class="strip"><span>Q3 FY27</span><span>DAY 35 OF 92</span><span class="sw" data-r="04 AUG 20:04 PT" data-d="INSTANT PREVIEW">INSTANT PREVIEW</span></div>
+
+  <div class="ctrl">
+    <div class="seg" id="modeSeg" role="group" aria-label="Data source">
+      <button data-v="demo" class="on" type="button">DEMO</button>
+      <button data-v="real" type="button">REAL</button>
+    </div>
+    <button id="tbBtn" class="ghostbtn" type="button">Show Tableau</button>
+    <button id="cardsBtn" class="ghostbtn" type="button">Metric Cards</button>
+  </div>
+  <div id="modeStatus" class="modenote"></div>
+  <div class="legend"><b style="color:var(--tab)">Blue</b> = Tableau semantic layer, toggled above &middot; tap <b>(i)</b> on any card for its data source and freshness &middot; tap a header to collapse it &middot; use <b>Metric Cards</b> to hide sections</div>
+</header>
+
+<div class="modal-overlay" id="cardModalOverlay">
+  <div class="modal-box">
+    <h3>Metric Cards</h3>
+    <div class="modal-sub">Choose which sections show in this brief. Unchecked sections hide until you re-check them here.</div>
+    <div id="cardModalList"></div>
+    <div class="mbtns">
+      <button type="button" id="cardModalCancel">Cancel</button>
+      <button type="button" class="primary" id="cardModalOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<section class="card r1" data-key="card01" data-title="Closed Won">
+  <div style="padding:15px 12px 7px;position:relative">
+    <button class="info" data-fresh="Real: live SOQL, 04 Aug 2026 20:04 PT &middot; Demo: instant simulated preview" data-src="Salesforce Org62 (Opportunity, Closed Won) + Tableau semantic layer for Product Mix / YoY / Create &amp; Close (Sls_Forecasting_Metrics_Expanded SDM)" data-tabbenefit="Product mix, true YoY, and Create &amp; Close splits below resolve against Tableau's certified ACV definition &mdash; the same number Finance and BI use, not a per-report SOQL sum.">i</button>
+    <span class="eb">Closed won today</span>
+    <div class="hero tab sw" data-r="$1.1M" data-d="$1.8M">$1.8M</div>
+    <div class="sub"><span class="sw" data-r="541 DEALS" data-d="612 DEALS">612 DEALS</span> &middot; MOST DEALS OF ANY DAY THIS MONTH</div>
+    <div class="two">
+      <div><span class="eb">Aug MTD</span><div class="big s22 tab sw" data-r="$3.7M" data-d="$14.9M">$14.9M</div><div class="sm"><span class="sw" data-r="1,930 deals" data-d="4,340 deals">4,340 deals</span></div></div>
+      <div><span class="eb">Q3 QTD</span><div class="big s22 tab sw" data-r="$7.0M" data-d="$23.6M">$23.6M</div><div class="sm"><span class="sw" data-r="2,013 deals &middot; live" data-d="5,905 deals &middot; preview">5,905 deals &middot; preview</span></div></div>
+    </div>
+    <div class="mos">
+      <div><span class="eb">Jul (final)</span><b class="tab sw" data-r="$105.8M" data-d="$121.3M">$121.3M</b></div>
+      <div><span class="eb">Aug (MTD)</span><b class="tab sw" data-r="$3.7M" data-d="$14.9M">$14.9M</b></div>
+      <div><span class="eb">Sep (booked)</span><b class="tab sw" data-r="$1.1M" data-d="$2.4M">$2.4M</b></div>
+    </div>
+  </div>
+
+  <div class="chartbox">
+    <span class="eb">Monthly trend &middot; closed ACV</span>
+    <div class="bars" style="height:90px;margin-top:9px">
+      <i class="swh" data-rh="80px" data-dh="80px" style="height:80px"></i>
+      <i class="n swh" data-rh="15px" data-dh="28px" style="height:28px"></i>
+      <i class="f swh" data-rh="8px" data-dh="11px" style="height:11px"></i>
+    </div>
+    <div class="tf">
+      <span class="sw" data-r="JUL $105.8M" data-d="JUL $121.3M">JUL $121.3M</span>
+      <span class="sw" data-r="AUG $3.7M &middot; now" data-d="AUG $14.9M &middot; now">AUG $14.9M &middot; now</span>
+      <span class="sw" data-r="SEP $1.1M" data-d="SEP $2.4M">SEP $2.4M</span>
+    </div>
+    <div class="chartcap">Solid = closed month &middot; acid = in progress &middot; hollow = not started.</div>
+  </div>
+
+  <div class="mt3 tbblock" style="margin-left:12px;margin-right:12px">
+    <span class="eb">Product mix</span>
+    <div class="mtr" style="margin-top:9px"><div class="t"><span class="lb">Sales</span><span class="vl tbval">58%</span></div><div class="trk tbtrk"><b class="tbfill" style="width:58%"></b></div></div>
+    <div class="mtr"><div class="t"><span class="lb">Service</span><span class="vl tbval">18%</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:18%"></b></div></div>
+    <div class="mtr"><div class="t"><span class="lb">Slack</span><span class="vl tbval">12%</span></div><div class="trk tbtrk"><b class="tbfill" style="width:12%"></b></div></div>
+    <div class="mtr"><div class="t"><span class="lb">Analytics</span><span class="vl tbval">7%</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:7%"></b></div></div>
+    <div class="mtr"><div class="t"><span class="lb">Tableau</span><span class="vl tbval">5%</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:5%"></b></div></div>
+  </div>
+
+  <div class="mt3 tbblock" style="margin-left:12px;margin-right:12px">
+    <span class="eb">Closed ACV &middot; year over year, same elapsed days</span>
+    <div class="bars" style="height:70px;margin-top:9px">
+      <i class="tbfill" style="height:47px"></i>
+      <i class="tbfill" style="height:56px"></i>
+      <i class="n" style="height:70px"></i>
+    </div>
+    <div class="tf"><span>PY-1 $17.1M</span><span>PY $19.8M</span><span style="background:var(--acid);padding:1px 5px">CY $23.6M &middot; +19.2%</span></div>
+  </div>
+
+  <div class="mt3 tbblock" style="margin-left:12px;margin-right:12px">
+    <span class="eb">Create &amp; Close mix</span>
+    <div class="mtr" style="margin-top:9px"><div class="t"><span class="lb">% of total ACV that is Create &amp; Close</span><span class="vl tbval">34%</span></div><div class="trk tbtrk"><b class="tbfill" style="width:34%"></b></div></div>
+    <div class="mos">
+      <div><span class="eb">Organic</span><b class="tbval">21%</b></div>
+      <div><span class="eb">Manufactured</span><b class="tbval">13%</b></div>
+      <div><span class="eb">Non-C&amp;C</span><b class="tbval">66%</b></div>
+    </div>
+    <div class="ft" style="margin-top:11px">34% Create &amp; Close is a healthy range &mdash; too high means the org is living deal-to-deal, too low means inbound is slow to convert. Sales Cloud carries 58% of C&amp;C ACV.</div>
+  </div>
+
+  <div class="tape only-real">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <span class="eb">August &middot; daily bookings</span><span style="font-size:9.5px;color:var(--smear)">PEAK $1.6M</span>
+    </div>
+    <div class="bars"><i style="height:66px"></i><i style="height:3px"></i><i style="height:34px"></i><i class="n" style="height:47px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:3px"></i><i class="f" style="height:9px"></i></div>
+    <div class="tf"><span>01</span><b>TODAY 04</b><span>31</span></div>
+  </div>
+</section>
+
+<section class="card r2" data-key="card02" data-title="$50K+ Won">
+  <div class="hd">
+    <button class="info" data-fresh="Real: live SOQL, 04 Aug 2026 20:04 PT &middot; Demo: instant simulated preview" data-src="Salesforce Org62 &middot; Opportunity, convertCurrency(Amount), Closed Won this month, &ge;$60K raw" data-tabbenefit="Tableau's row-level security scopes this list to Alfano's full downline automatically, using the same certified hierarchy join every leader's brief uses &mdash; no manual Owner.UserRoleId chunking required.">i</button>
+    <h2>$50K+ won</h2>
+    <p>August MTD &middot; <span class="sw" data-r="11" data-d="6">6</span> largest by ACV &middot; <span class="sw" data-r="$1.6M" data-d="$1.48M">$1.48M</span></p>
+  </div>
+  <div class="bd">
+    <div class="only-real">
+    <div class="row"><div class="l"><div class="nm">Humm Group Limited</div><div class="mt"><span class="tg">EMEA</span>Aoife Jacob</div></div><div class="r"><div class="am tab">$415K</div><div class="wh">Aug 1</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Imperial Mgmt Services</div><div class="mt"><span class="tg">AMER</span>Laura Morgan</div></div><div class="r"><div class="am tab">$300K</div><div class="wh">Aug 1</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Philippe Vediaud Publicite</div><div class="mt"><span class="tg">EMEA</span>Axel Normand</div></div><div class="r"><div class="am tab">$239K</div><div class="wh">Aug 1</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Raw Entertainment B.V.</div><div class="mt"><span class="tg">AMER</span>Jameson Spirgi</div></div><div class="r"><div class="am tab">$147K</div><div class="wh">Aug 3</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Newclip Technics</div><div class="mt"><span class="tg">EMEA</span>Nicolas Delhommeau</div></div><div class="r"><div class="am tab">$105K</div><div class="wh">Aug 1</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Avive Solutions, Inc.</div><div class="mt"><span class="tg">AMER</span>Matt Appell</div></div><div class="r"><div class="am tab">$101K</div><div class="wh">Aug 3</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Madvertise Media GmbH</div><div class="mt"><span class="tg">EMEA</span>Onur Tanic</div></div><div class="r"><div class="am tab">$70K</div><div class="wh">Aug 1</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Abacus Global Management</div><div class="mt"><span class="tg">AMER</span>Madeline Dercher</div></div><div class="r"><div class="am tab">$69K</div><div class="wh">Aug 1</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Sunny Benefits, Inc.</div><div class="mt"><span class="tg">AMER</span>Lonnie Wishom</div></div><div class="r"><div class="am tab">$68K</div><div class="wh">Aug 4</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Aspen Clean</div><div class="mt"><span class="tg">AMER</span>Jesse Kaufman</div></div><div class="r"><div class="am tab">$65K</div><div class="wh">Aug 30</div></div></div>
+    <div class="row"><div class="l"><div class="nm">onCar</div><div class="mt"><span class="tg">LATAM</span>Nat&aacute;lia Valle</div></div><div class="r"><div class="am tab">$36K</div><div class="wh">Aug 3</div></div></div>
+    </div>
+    <div class="only-demo">
+    <div class="row"><div class="l"><div class="nm">Bright Harbor Logistics</div><div class="mt"><span class="tg">AMER</span>Priya Shah</div></div><div class="r"><div class="am tab">$482K</div><div class="wh">Aug 2</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Solano Health Partners</div><div class="mt"><span class="tg">AMER</span>Marcus Webb</div></div><div class="r"><div class="am tab">$310K</div><div class="wh">Aug 3</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Kestrel Analytics</div><div class="mt"><span class="tg">EMEA</span>Freya Lindqvist</div></div><div class="r"><div class="am tab">$265K</div><div class="wh">Aug 1</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Northwind Cooperative</div><div class="mt"><span class="tg">LATAM</span>Diego Salgado</div></div><div class="r"><div class="am tab">$188K</div><div class="wh">Aug 4</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Marlowe &amp; Finch</div><div class="mt"><span class="tg">EMEA</span>Tomas Vik</div></div><div class="r"><div class="am tab">$141K</div><div class="wh">Aug 2</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Ridgeline Outfitters</div><div class="mt"><span class="tg">AMER</span>Casey Odom</div></div><div class="r"><div class="am tab">$96K</div><div class="wh">Aug 4</div></div></div>
+    </div>
+    <div class="ft">Filtered at a $60K raw threshold, cut to converted ACV &ge; $36K after FX. All three regions represented.</div>
+  </div>
+</section>
+
+<section class="card r3" data-key="card03" data-title="Quote Queue">
+  <div class="hd">
+    <button class="info" data-fresh="Real: live SOQL this run &middot; Demo: instant simulated preview" data-src="Salesforce Org62 &middot; Apttus_Proposal__Proposal__c (CPQ)" data-tabbenefit="A semantic model joining Apttus quote status to the same certified ACV definition used everywhere else in this brief would let the quote backlog reconcile automatically with pipeline value, instead of two separately-queried numbers that can drift apart.">i</button>
+    <h2>Quote queue</h2>
+    <p>CPQ approval status</p>
+  </div>
+  <div class="bd">
+    <span class="eb">Open quotes in flight</span>
+    <div class="big s30 tab sw" data-r="3,073" data-d="2,910" style="margin-top:8px">2,910</div>
+    <div class="sm">quotes &middot; Approved / Published / Submitted for Approval / Awaiting Conversion</div>
+    <div class="mos">
+      <div><span class="eb">Total ACV</span><b class="tab sw" data-r="$41.6M" data-d="$37.9M">$37.9M</b></div>
+      <div><span class="eb">Avg quote</span><b class="tab sw" data-r="$13.5K" data-d="$13.0K">$13.0K</b></div>
+    </div>
+    <div class="ft">Quotes still in approval or awaiting conversion &mdash; the backlog sitting behind this quarter's bookings.</div>
+  </div>
+</section>
+
+<section class="card r4" data-key="card04" data-title="Pipeline Added">
+  <div class="hd">
+    <button class="info" data-fresh="Real: live SOQL &middot; Demo: simulated &middot; Tableau target illustrative pending live connection" data-src="Salesforce Org62 (Opportunity) + Tableau semantic layer for pipe gen attainment (Sls_Forecasting_Metrics_Expanded SDM)" data-tabbenefit="The Pipe Gen Attainment target below is set once in the semantic layer and reused by every leader's brief &mdash; so this quarter's target is the same one Finance is tracking against, not a locally hard-coded number.">i</button>
+    <h2>Pipeline added</h2>
+    <p>Dated by Stage 2 flag</p>
+  </div>
+  <div class="bd">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><span class="eb">Today</span><div class="big s26 tab sw" data-r="$7.0M" data-d="$9.1M">$9.1M</div><div class="sm sw" data-r="2,013 opps" data-d="2,410 opps">2,410 opps</div></div>
+      <div><span class="eb">Aug MTD</span><div class="big s26 tab sw" data-r="$11.2M" data-d="$48.6M">$48.6M</div><div class="sm sw" data-r="3,206 opps" data-d="12,980 opps">12,980 opps</div></div>
+    </div>
+    <div class="mt3">
+      <div class="mtr">
+        <div class="t"><span class="lb sw" data-r="Daily run-rate vs July ($7.5M/day)" data-d="Daily run-rate vs July ($11.3M/day)">Daily run-rate vs July ($11.3M/day)</span><span class="vl tab sw" data-r="0.37x" data-d="1.08x">1.08x</span></div>
+        <div class="trk"><b class="swp" data-prop="width" data-rv="31%" data-dv="86%" style="width:86%"></b><u></u></div>
+      </div>
+    </div>
+    <div class="ft">July generated $233.0M across 39,979 opps (broad SMB scope). Only 4 days into August &mdash; compared on a per-day basis, not a straight MTD ratio.</div>
+
+    <div class="mt3 tbblock">
+      <span class="eb">Pipe gen attainment vs. certified target</span>
+      <div class="mtr" style="margin-top:9px">
+        <div class="t"><span class="lb">Target: Pipe Gen by Product, Q3 FY27</span><span class="vl tbval">94%</span></div>
+        <div class="trk tbtrk"><b class="tbfill" style="width:94%"></b></div>
+      </div>
+      <div class="sm">$47.2M attained of a $50.0M target</div>
+    </div>
+  </div>
+</section>
+
+<section class="card r5" data-key="card05" data-title="Flagged">
+  <div class="hd">
+    <button class="info" data-fresh="Real: live SOQL &middot; Demo: simulated" data-src="Salesforce Org62 &middot; Opportunity, proxy signal (close-date-history not confirmed)" data-tabbenefit="Tableau's Since-Yesterday deal-movement flags (below) would replace this close-date proxy with a governed, field-history-backed signal instead of an inferred guess about how many times a date moved.">i</button>
+    <h2>Flagged: due date now past August</h2>
+    <p>Proxy signal &middot; not field-history confirmed</p>
+  </div>
+  <div class="bd">
+    <div class="only-real">
+    <div class="row"><div class="l"><div class="nm">Alta Equipment Group</div><div class="mt"><span class="tg">AMER</span>Kris Grigoryan</div><div class="nt">modified this month &middot; 04 &mdash; Confirming Value &middot; pushed 5x</div></div><div class="r"><div class="am hot tab">$944K</div><div class="wh">&rarr; Sep 15</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Viper Equity BDFT</div><div class="mt"><span class="tg">AMER</span>Argelia Garcia</div><div class="nt">modified this month &middot; 04 &mdash; Confirming Value &middot; pushed 5x</div></div><div class="r"><div class="am hot tab">$840K</div><div class="wh">&rarr; Sep 30</div></div></div>
+    <div class="row"><div class="l"><div class="nm">OpenLoop Health</div><div class="mt"><span class="tg">AMER</span>Morgan Prieve</div><div class="nt">modified this month &middot; 02 &mdash; Determining Problem</div></div><div class="r"><div class="am hot tab">$725K</div><div class="wh">&rarr; Sep 15</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Harmony Healthcare IT</div><div class="mt"><span class="tg">AMER</span>Cole Nienstedt</div><div class="nt">modified this month &middot; 05 &mdash; Negotiating &middot; pushed 3x</div></div><div class="r"><div class="am hot tab">$544K</div><div class="wh">&rarr; Sep 30</div></div></div>
+    </div>
+    <div class="only-demo">
+    <div class="row"><div class="l"><div class="nm">Palisade Robotics</div><div class="mt"><span class="tg">AMER</span>Dana Frick</div><div class="nt">modified this month &middot; 04 &mdash; Confirming Value &middot; pushed 2x</div></div><div class="r"><div class="am hot tab">$612K</div><div class="wh">&rarr; Sep 12</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Union Grove Foods</div><div class="mt"><span class="tg">EMEA</span>Ines Carvalho</div><div class="nt">modified this month &middot; 03 &mdash; Determining Problem</div></div><div class="r"><div class="am hot tab">$398K</div><div class="wh">&rarr; Sep 20</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Larkspur Dental Group</div><div class="mt"><span class="tg">AMER</span>Trent Novak</div><div class="nt">modified this month &middot; 05 &mdash; Negotiating &middot; pushed 4x</div></div><div class="r"><div class="am hot tab">$275K</div><div class="wh">&rarr; Sep 5</div></div></div>
+    </div>
+    <div class="ft">Proxy signal: $60K+ deals modified this month whose close date now sits in the next month. Treat as a watchlist, not a confirmed slip count.</div>
+  </div>
+</section>
+
+<section class="card r6" data-key="card06" data-title="Pull Forward">
+  <div class="hd">
+    <button class="info" data-fresh="Real: live SOQL &middot; Demo: simulated" data-src="Salesforce Org62 &middot; Opportunity, closing next month" data-tabbenefit="The same certified movement flags used in the Deal Movement cards below would let this list cite an audited push-count per deal, instead of inferring it from modification timestamps.">i</button>
+    <h2>Pull forward</h2>
+    <p>September deals modified this month, $60K+</p>
+  </div>
+  <div class="bd">
+    <div class="only-real">
+    <div class="row"><div class="l"><div class="nm">Alta Equipment Group</div><div class="mt"><span class="tg">AMER</span>Kris Grigoryan</div><div class="nt">confirming value &middot; UP&minus; &middot; pushed 5x</div></div><div class="r"><div class="am tab">$944K</div><div class="wh">Sep 15</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Viper Equity BDFT</div><div class="mt"><span class="tg">AMER</span>Argelia Garcia</div><div class="nt">confirming value &middot; UP+ &middot; pushed 5x</div></div><div class="r"><div class="am tab">$840K</div><div class="wh">Sep 30</div></div></div>
+    <div class="row"><div class="l"><div class="nm">OpenLoop Health</div><div class="mt"><span class="tg">AMER</span>Morgan Prieve</div><div class="nt">determining problem &middot; UP&minus; &middot; clean history</div></div><div class="r"><div class="am tab">$725K</div><div class="wh">Sep 15</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Harmony Healthcare IT</div><div class="mt"><span class="tg">AMER</span>Cole Nienstedt</div><div class="nt">negotiating &middot; UP&minus; &middot; pushed 3x</div></div><div class="r"><div class="am tab">$544K</div><div class="wh">Sep 30</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Electromed, Inc.</div><div class="mt"><span class="tg">AMER</span>Daniel McGinn</div><div class="nt">determining problem &middot; UP&minus; &middot; pushed 3x</div></div><div class="r"><div class="am tab">$473K</div><div class="wh">Sep 25</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Hunter Communications</div><div class="mt"><span class="tg">AMER</span>Giovanni Migic</div><div class="nt">determining problem &middot; UP&minus; &middot; pushed 2x</div></div><div class="r"><div class="am tab">$421K</div><div class="wh">Sep 30</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Vultr</div><div class="mt"><span class="tg">AMER</span>Kendra Kolb</div><div class="nt">confirming value &middot; UP&minus; &middot; pushed 3x</div></div><div class="r"><div class="am tab">$409K</div><div class="wh">Sep 15</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Arkatechture</div><div class="mt"><span class="tg">AMER</span>Usman Khan</div><div class="nt">finalizing closure &middot; no judgement &middot; pushed 1x</div></div><div class="r"><div class="am tab">$400K</div><div class="wh">Sep 30</div></div></div>
+    </div>
+    <div class="only-demo">
+    <div class="row"><div class="l"><div class="nm">Palisade Robotics</div><div class="mt"><span class="tg">AMER</span>Dana Frick</div><div class="nt">confirming value &middot; UP&minus; &middot; pushed 2x</div></div><div class="r"><div class="am tab">$612K</div><div class="wh">Sep 12</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Union Grove Foods</div><div class="mt"><span class="tg">EMEA</span>Ines Carvalho</div><div class="nt">determining problem &middot; UP&minus; &middot; clean history</div></div><div class="r"><div class="am tab">$398K</div><div class="wh">Sep 20</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Larkspur Dental Group</div><div class="mt"><span class="tg">AMER</span>Trent Novak</div><div class="nt">negotiating &middot; UP+ &middot; pushed 4x</div></div><div class="r"><div class="am tab">$275K</div><div class="wh">Sep 5</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Anchor Bay Systems</div><div class="mt"><span class="tg">AMER</span>Wren Delgado</div><div class="nt">confirming value &middot; no judgement &middot; pushed 1x</div></div><div class="r"><div class="am tab">$240K</div><div class="wh">Sep 28</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Fernwood Analytics</div><div class="mt"><span class="tg">EMEA</span>Sanne Bakker</div><div class="nt">determining problem &middot; UP&minus; &middot; clean history</div></div><div class="r"><div class="am tab">$190K</div><div class="wh">Sep 18</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Cobalt Rail Freight</div><div class="mt"><span class="tg">LATAM</span>Rafael Nunes</div><div class="nt">confirming value &middot; UP&minus; &middot; pushed 2x</div></div><div class="r"><div class="am tab">$151K</div><div class="wh">Sep 30</div></div></div>
+    </div>
+    <div class="ft">Ranked on ACV. <span class="only-real">All eight top candidates happen to be AMER this cycle &mdash; EMEA/LATAM $60K+ September deals exist further down the list.</span><span class="only-demo">Mixed-region illustrative list.</span></div>
+  </div>
+</section>
+
+<section class="card r7" data-key="card07" data-title="Forecast Stability">
+  <div class="hd">
+    <button class="info" data-fresh="Real: live SOQL &middot; Demo: simulated &middot; Tableau commit trajectory illustrative pending live connection" data-src="Salesforce Org62 (MFJ split, weighted call) + Tableau semantic layer for Commit Trajectory (Sls_Forecasting_Metrics_Expanded SDM)" data-tabbenefit="Commit Trajectory (below) tracks this exact commit number over time inside Tableau's semantic layer, so the day-over-day and week-over-week deltas are certified snapshots, not locally recomputed each run.">i</button>
+    <h2>Forecast stability</h2>
+    <p>MFJ-weighted call &middot; enter your own commit below</p>
+  </div>
+  <div class="bd">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><span class="eb">Q3 closed to date</span><div class="big s30 tab sw" data-r="$7.0M" data-d="$23.6M">$23.6M</div><div class="sm sw" data-r="2,013 deals &middot; live" data-d="5,905 deals &middot; preview">5,905 deals &middot; preview</div></div>
+      <div><span class="eb">Open pipe 02-07</span><div class="big s30 tab sw" data-r="$174.0M" data-d="$181.9M">$181.9M</div><div class="sm sw" data-r="22,240 deals" data-d="26,965 deals">26,965 deals</div></div>
+    </div>
+
+    <div class="mt3">
+      <span class="eb">MFJ split of open quarter pipe</span>
+      <div style="margin-top:9px">
+        <div class="qr" style="border-top:none"><span class="a">IN</span><span class="b sw" data-r="2,225" data-d="3,140">3,140</span><span class="c tab sw" data-r="$23.3M" data-d="$29.8M">$29.8M</span></div>
+        <div class="qr"><span class="a">UP+</span><span class="b sw" data-r="40" data-d="205">205</span><span class="c tab sw" data-r="$1.3M" data-d="$2.1M">$2.1M</span></div>
+        <div class="qr"><span class="a">UP&minus;</span><span class="b sw" data-r="12,992" data-d="9,640">9,640</span><span class="c tab sw" data-r="$123.7M" data-d="$101.4M">$101.4M</span></div>
+        <div class="qr"><span class="a">No judgement</span><span class="b sw" data-r="28,229" data-d="13,980">13,980</span><span class="c tab sw" data-r="$38.5M" data-d="$48.6M">$48.6M</span></div>
+      </div>
+      <div class="stack">
+        <div class="swp" data-prop="width" data-rv="12.5%" data-dv="16.4%" style="width:16.4%;background:var(--ink)"></div>
+        <div class="swp" data-prop="width" data-rv="0.7%" data-dv="1.2%" style="width:1.2%;background:repeating-linear-gradient(45deg,var(--ink) 0 3px,transparent 3px 6px)"></div>
+        <div class="swp" data-prop="width" data-rv="66.2%" data-dv="55.7%" style="width:55.7%;background:var(--pink)"></div>
+        <div class="swp" data-prop="width" data-rv="20.6%" data-dv="26.7%" style="width:26.7%;background:var(--paper2);border-left:1px dotted var(--faint)"></div>
+      </div>
+      <div class="leg"><span>&#9632; IN</span><span>&#9632; UP+ (hatched)</span><span>&#9632; UP&minus; (pink = risk)</span><span>&#9632; no judgement</span></div>
+    </div>
+
+    <div class="mt3">
+      <span class="eb">Weighted call (this run's model)</span>
+      <div style="margin-top:9px">
+        <div class="qr" style="border-top:none"><span class="a">QTD (booked)</span><span class="b">100%</span><span class="c tab sw" data-r="$7.0M" data-d="$23.6M">$23.6M</span></div>
+        <div class="qr"><span class="a">IN &times; 75%</span><span class="b">75%</span><span class="c tab sw" data-r="$17.5M" data-d="$22.4M">$22.4M</span></div>
+        <div class="qr"><span class="a">UP+ &times; 20%</span><span class="b">20%</span><span class="c tab sw" data-r="$0.3M" data-d="$0.4M">$0.4M</span></div>
+        <div class="qr"><span class="a">No judgement &times; 5%</span><span class="b">5%</span><span class="c tab sw" data-r="$1.9M" data-d="$2.4M">$2.4M</span></div>
+      </div>
+      <div style="font-size:10.5px;color:var(--smear);line-height:1.6;margin-top:8px">
+        UP&minus; carries no weight in this model &mdash; it is the thing to fix, not to count on.
+      </div>
+    </div>
+
+    <div class="mt3 tbblock">
+      <span class="eb">Commit trajectory</span>
+      <div class="mos" style="margin-top:9px">
+        <div><span class="eb">Today</span><b class="tbval">$26.9M</b></div>
+        <div><span class="eb">Yesterday</span><b class="tbval">$26.4M</b> <span style="color:var(--ink);background:var(--acid);padding:0 3px;font-size:11px">&#9650;$0.5M</span></div>
+        <div><span class="eb">Last week</span><b class="tbval">$24.1M</b> <span style="color:var(--ink);background:var(--acid);padding:0 3px;font-size:11px">&#9650;$2.8M</span></div>
+      </div>
+      <div class="bars" style="height:44px;margin-top:11px">
+        <i class="tbfill" style="height:22px;opacity:.35"></i>
+        <i class="tbfill" style="height:26px;opacity:.45"></i>
+        <i class="tbfill" style="height:29px;opacity:.55"></i>
+        <i class="tbfill" style="height:33px;opacity:.65"></i>
+        <i class="tbfill" style="height:31px;opacity:.75"></i>
+        <i class="tbfill" style="height:38px;opacity:.9"></i>
+        <i class="n" style="height:44px"></i>
+      </div>
+      <div class="tf"><span>7 DAYS AGO</span><span>TODAY</span></div>
+      <div class="ft">Commit has climbed every day this week &mdash; the answer to "is commit up or down?" in one glance.</div>
+    </div>
+
+    <div class="cbox" style="margin-top:14px;border-bottom:none;padding-bottom:0">
+      <span class="eb">Test against your commit</span>
+      <div class="cin"><span class="dol">$</span><input id="ci" inputmode="decimal" placeholder="e.g. 30"><span class="mm">M</span><button id="cb" class="cbtn" type="button">Set</button></div>
+      <div class="gap" id="cg">No commit entered yet &mdash; type your Q3 FY27 number above and tap Set.</div>
+      <div id="co"></div>
+    </div>
+
+    <div class="ft">Method: call = QTD + (IN &times; 0.75) + (UP+ &times; 0.20) + (No judgement &times; 0.05). Coverage = open pipe &divide; gap to commit. Linearity = QTD &divide; (commit &times; 37.9% business-day elapsed fraction of Q3 FY27). Recalculates automatically for the active data mode above.</div>
+  </div>
+</section>
+
+<section class="card tbcard r1" data-key="card08" data-title="Quota & Attainment">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview &mdash; SDM refreshes hourly once connected" data-src="Tableau Next MCP &middot; Sls_Forecasting_Metrics_Expanded SDM &middot; NNAOV / quota fields" data-tabbenefit="NNAOV-derived quota lives in one certified semantic model shared org-wide &mdash; every leader's attainment % is computed the same way, so roll-ups across leaders always foot to the same total.">i</button>
+    <h2>Quota &amp; attainment</h2>
+    <p>NNAOV-derived Q3 quota</p>
+  </div>
+  <div class="bd">
+    <span class="eb">Attainment to date</span>
+    <div class="big s30 tbval" style="margin-top:8px">76.9%</div>
+    <div class="sm">$22.6M attained of $29.4M quota</div>
+    <div class="mt3">
+      <div class="mtr">
+        <div class="t"><span class="lb">Progress to quota</span><span class="vl tbval">76.9%</span></div>
+        <div class="trk tbtrk"><b class="tbfill" style="width:76.9%"></b></div>
+      </div>
+    </div>
+    <div class="ft">At this pace, quota is $6.8M away with roughly 8 weeks left in the quarter.</div>
+  </div>
+</section>
+
+<section class="card tbcard r2" data-key="card09" data-title="Regional Split">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview &mdash; datasource refreshes daily once connected" data-src="Tableau Cloud MCP &middot; Closed Business ACV RLS datasource &middot; Region field" data-tabbenefit="Region is a governed dimension on the same RLS-scoped ACV dataset used for Closed Won above &mdash; this split always reconciles with that total because it's the same underlying number, not a separately-run report.">i</button>
+    <h2>Regional split</h2>
+    <p>Share of Q3 QTD closed ACV</p>
+  </div>
+  <div class="bd">
+    <div class="mtr"><div class="t"><span class="lb">AMER</span><span class="vl tbval">54%</span></div><div class="trk tbtrk"><b class="tbfill" style="width:54%"></b></div></div>
+    <div class="mtr"><div class="t"><span class="lb">EMEA</span><span class="vl tbval">31%</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:31%"></b></div></div>
+    <div class="mtr"><div class="t"><span class="lb">LATAM</span><span class="vl tbval">15%</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:15%"></b></div></div>
+    <div class="ft">AMER carries just over half of closed ACV this quarter; EMEA is the second-largest region.</div>
+  </div>
+</section>
+
+<section class="card tbcard r3" data-key="card10" data-title="Competitive Signal">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview" data-src="Tableau Cloud MCP &middot; Competitor logical table joined on Opportunity Id" data-tabbenefit="Competitor is modeled as a dimension directly against Opportunity outcomes in Tableau's semantic layer &mdash; no manual join between a competitor-tracking spreadsheet and Salesforce required to get a win rate.">i</button>
+    <h2>Competitive signal</h2>
+    <p>Win rate vs. primary competitor</p>
+  </div>
+  <div class="bd">
+    <div class="big s30 tbval" style="margin-top:8px">62%</div>
+    <div class="sm">18W / 11L &middot; most-cited competitor: "Meridian CRM"</div>
+    <div class="mt3">
+      <div class="mtr"><div class="t"><span class="lb">Wins</span><span class="vl tbval">18</span></div><div class="trk tbtrk"><b class="tbfill" style="width:62%"></b></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Losses</span><span class="vl tbval">11</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:38%"></b></div></div>
+    </div>
+    <div class="ft">62% win rate against Meridian CRM, the most-cited competitor this quarter.</div>
+  </div>
+</section>
+
+<section class="card tbcard r4" data-key="card11" data-title="Pipeline Quality">
+  <div class="hd">
+    <button class="info" data-fresh="Proxy live this run &middot; certified score is an illustrative preview" data-src="Combination: Salesforce Org62 (no-MFJ proxy) + Tableau Cloud MCP certified PQ Score" data-tabbenefit="The certified score blends MFJ judgement with deal velocity and engagement signals in one semantic definition &mdash; the no-MFJ proxy above only sees a single input and misses deals that are healthy for other reasons.">i</button>
+    <h2>Pipeline quality</h2>
+    <p>Proxy + certified score</p>
+  </div>
+  <div class="bd">
+    <span class="eb">% of open pipe with no MFJ judgement (proxy)</span>
+    <div class="big s30 tab sw" data-r="64.9%" data-d="51.8%" style="margin-top:8px">51.8%</div>
+    <div class="trk"><b class="swp" data-prop="width" data-rv="64.9%" data-dv="51.8%" style="width:51.8%;background:var(--faint)"></b></div>
+    <div class="mt3">
+      <span class="eb">Certified pipeline quality score</span>
+      <div class="big s30 tbval" style="margin-top:8px">71<span style="font-size:16px">/100</span></div>
+      <div class="trk tbtrk"><b class="tbfill" style="width:71%"></b></div>
+    </div>
+    <div class="ft">The certified score reads more favorably than the no-MFJ proxy alone &mdash; it also credits deal velocity and engagement, not just whether a judgement was entered.</div>
+  </div>
+</section>
+
+<section class="card tbcard r5" data-key="card12" data-title="Coverage vs. 2-Yr History">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview &mdash; SDM refreshes hourly once connected" data-src="Tableau Next MCP &middot; Sls_Forecasting_Metrics_Expanded SDM &middot; Current/Historical Coverage, Funded %, Velocity" data-tabbenefit="Historical coverage, funded %, and velocity live in the same semantic model as this quarter's numbers, so the 2-year comparison is apples-to-apples by construction, not stitched together from separate historical exports.">i</button>
+    <h2>Coverage vs. 2-yr history</h2>
+    <p>Current quarter vs. 2-year average, same quarter</p>
+  </div>
+  <div class="bd">
+    <div class="mos">
+      <div><span class="eb">Current commit</span><b class="tbval">$26.9M</b></div>
+      <div><span class="eb">Open pipe</span><b class="tbval">$181.9M</b></div>
+    </div>
+    <div class="mt3">
+      <div class="mtr"><div class="t"><span class="lb">Coverage &mdash; current <span style="color:var(--pink)">&#9660;</span></span><span class="vl tbval">2.3x</span></div><div class="trk tbtrk"><b class="tbfill" style="width:58%"></b></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Coverage &mdash; historical (2-yr avg)</span><span class="vl tbval">3.0x</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:75%"></b></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Funded % &mdash; current <span style="color:var(--pink)">&#9660;</span></span><span class="vl tbval">34%</span></div><div class="trk tbtrk"><b class="tbfill" style="width:34%"></b></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Funded % &mdash; historical</span><span class="vl tbval">41%</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:41%"></b></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Velocity vs. historical pace <span style="color:var(--pink)">&#9660;</span></span><span class="vl tbval">88%</span></div><div class="trk tbtrk"><b class="tbfill" style="width:88%"></b></div></div>
+    </div>
+    <div class="ft">Running below the 2-year seasonal norm on both coverage and funded%, and pacing about 12% slower through the pipeline than usual at this point in the quarter.</div>
+  </div>
+</section>
+
+<section class="card tbcard r6" data-key="card13" data-title="Deal Movement — Since Yesterday">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview &mdash; daily snapshot ~7AM PT once connected" data-src="Tableau Next MCP &middot; Sls_Forecasting_Metrics_Expanded SDM &middot; Since-Yesterday movement flags" data-tabbenefit="These movement flags are computed once, centrally, from certified field-history logic &mdash; every leader's brief reads the same slipped/pulled/expanded counts instead of each team defining its own idea of what counts as a slip.">i</button>
+    <h2>Deal movement &mdash; since yesterday</h2>
+    <p>Boolean flags, since yesterday's snapshot</p>
+  </div>
+  <div class="bd">
+    <div class="qr" style="border-top:none"><span class="a">Slipped (pushed to future qtr)</span><span class="b">14</span><span class="c tbval">$2.1M</span></div>
+    <div class="qr"><span class="a">Pushed out of month</span><span class="b">22</span><span class="c tbval">$3.4M</span></div>
+    <div class="qr"><span class="a">Pulled into month</span><span class="b">9</span><span class="c tbval">$1.2M</span></div>
+    <div class="qr"><span class="a">New deal</span><span class="b">41</span><span class="c tbval">$5.6M</span></div>
+    <div class="qr"><span class="a">Expanded (amount up)</span><span class="b">11</span><span class="c tbval">$1.8M</span></div>
+    <div class="qr"><span class="a">Compressed (amount down)</span><span class="b">7</span><span class="c tbval">$0.4M</span></div>
+    <div class="ft">Net movement since yesterday: 41 new deals added, 14 slipped to next quarter.</div>
+  </div>
+</section>
+
+<section class="card tbcard r7" data-key="card14" data-title="Deal Movement — Since Last Week">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview &mdash; daily snapshot ~7AM PT once connected" data-src="Tableau Next MCP &middot; Sls_Forecasting_Metrics_Expanded SDM &middot; Since-Last-Week movement flags" data-tabbenefit="Resolved against the same certified movement definitions as the daily view above, so the daily and weekly numbers never disagree about what counts as a push or a pull.">i</button>
+    <h2>Deal movement &mdash; since last week</h2>
+    <p>Signed waterfall &middot; up = acid, down = pink</p>
+  </div>
+  <div class="bd">
+    <div class="qr" style="border-top:none"><span class="a">New deal</span><span class="b">61</span><span class="c" style="color:var(--ink);background:var(--acid);padding:1px 5px">+$18.4M</span></div>
+    <div class="qr"><span class="a">Won</span><span class="b">172</span><span class="c" style="color:var(--ink);background:var(--acid);padding:1px 5px">+$9.8M</span></div>
+    <div class="qr"><span class="a">Expanded</span><span class="b">33</span><span class="c" style="color:var(--ink);background:var(--acid);padding:1px 5px">+$4.2M</span></div>
+    <div class="qr"><span class="a">Pulled into quarter</span><span class="b">8</span><span class="c" style="color:var(--ink);background:var(--acid);padding:1px 5px">+$2.9M</span></div>
+    <div class="qr"><span class="a">Compressed</span><span class="b">19</span><span class="c" style="color:var(--paper);background:var(--pink);padding:1px 5px">&minus;$2.6M</span></div>
+    <div class="qr"><span class="a">Lost / deaded out</span><span class="b">22</span><span class="c" style="color:var(--paper);background:var(--pink);padding:1px 5px">&minus;$3.1M</span></div>
+    <div class="qr"><span class="a">Pushed out of quarter</span><span class="b">14</span><span class="c" style="color:var(--paper);background:var(--pink);padding:1px 5px">&minus;$5.7M</span></div>
+    <div class="qr"><span class="a">Forecast category changed</span><span class="b">47</span><span class="c tbval">deals</span></div>
+    <div class="ft">Net movement this week: +$23.9M in vs. &minus;$11.4M out &mdash; <b>+$12.5M net</b>.</div>
+  </div>
+</section>
+
+<section class="card tbcard r1" data-key="card15" data-title="Attrition & NNAOV Risk">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview &mdash; attrition booked on a 1-month lag once connected" data-src="Tableau Cloud MCP &middot; NNAOV/Attrition Forecast Guidance (Tier-0 certified)" data-tabbenefit="Attrition and NNAOV are certified, board-level metric definitions &mdash; this is the same number Finance reports on, not a locally-approximated churn estimate built from raw Closed Won/Lost activity.">i</button>
+    <h2>Attrition &amp; NNAOV risk</h2>
+    <p>Net new ACV vs. expected churn</p>
+  </div>
+  <div class="bd">
+    <div class="mos">
+      <div><span class="eb">Attrition (actual, 1-mo lag)</span><b class="tbval">$1.9M</b></div>
+      <div><span class="eb">Attrition commit (forecast)</span><b class="tbval">$2.4M</b></div>
+      <div><span class="eb">NNAOV commit</span><b class="tbval">$8.7M</b></div>
+    </div>
+    <div class="ft">NNAOV nets new bookings against expected attrition for a truer growth read than closed-won ACV alone.</div>
+  </div>
+</section>
+
+<section class="card tbcard r2" data-key="card16" data-title="Specialist Leader Scorecard">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview" data-src="Tableau Next MCP &middot; Sls_Specialist_Reporting SDM &middot; grouped by Specialist Level 04 User Name" data-tabbenefit="Specialist coverage rolls up through the same Level 04&ndash;10 hierarchy Tableau uses for every specialist report org-wide, so this leaderboard matches what each specialist's own manager already sees.">i</button>
+    <h2>Specialist leader scorecard</h2>
+    <p>Coverage vs. historical &middot; acid = above, pink = below</p>
+  </div>
+  <div class="bd">
+    <div class="row" style="border-top:none"><div class="l"><div class="nm">Crispino</div><div class="mt">Funded 47% &middot; Velocity 108% &middot; Commit $5.9M</div></div><div class="r"><div class="am" style="background:var(--acid);padding:1px 5px">3.4x</div><div class="wh">hist 2.9x</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Hillyer</div><div class="mt">Funded 44% &middot; Velocity 102% &middot; Commit $6.8M</div></div><div class="r"><div class="am" style="background:var(--acid);padding:1px 5px">3.1x</div><div class="wh">hist 2.8x</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Lagaly</div><div class="mt">Funded 38% &middot; Velocity 95% &middot; Commit $4.4M</div></div><div class="r"><div class="am" style="background:var(--paper2);border:2px solid var(--ink);padding:1px 5px">2.6x</div><div class="wh">hist 2.7x</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Scime</div><div class="mt">Funded 29% &middot; Velocity 81% &middot; Commit $5.1M</div></div><div class="r"><div class="am" style="background:var(--pink);color:var(--paper);padding:1px 5px">2.0x</div><div class="wh">hist 2.9x</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Capetto</div><div class="mt">Funded 26% &middot; Velocity 76% &middot; Commit $4.7M</div></div><div class="r"><div class="am" style="background:var(--pink);color:var(--paper);padding:1px 5px">1.8x</div><div class="wh">hist 2.6x</div></div></div>
+    <div class="ft">Scime and Capetto are running meaningfully below their own 2-year norm; Crispino and Hillyer are ahead of theirs.</div>
+  </div>
+</section>
+
+<section class="card tbcard r3" data-key="card17" data-title="Ghost Pipeline">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview" data-src="Tableau Next MCP &middot; Sls_Specialist_Reporting SDM &middot; Opportunity_Misaligned flag" data-tabbenefit="This misalignment only surfaces because Tableau resolves the AE's Opportunity amount and the specialist's own SFR forecast against one shared taxonomy &mdash; Salesforce has both numbers but no lens that puts them side by side.">i</button>
+    <h2>Ghost pipeline</h2>
+    <p>SFR vs. Opportunity misalignments</p>
+  </div>
+  <div class="bd">
+    <div class="row" style="border-top:none"><div class="l"><div class="nm">Solano Health Partners</div><div class="mt">AE Marcus Webb &middot; Specialist Priya Raman &middot; Opp $310K</div></div><div class="r"><div class="am" style="background:var(--pink);color:var(--paper);padding:1px 5px">SFR $85K</div><div class="wh">&Delta; &minus;$225K &middot; walked away</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Northwind Cooperative</div><div class="mt">AE Diego Salgado &middot; Specialist Priya Raman &middot; Opp $150K</div></div><div class="r"><div class="am" style="background:var(--pink);color:var(--paper);padding:1px 5px">SFR $40K</div><div class="wh">&Delta; &minus;$110K &middot; walked away</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Kestrel Analytics</div><div class="mt">AE Freya Lindqvist &middot; Specialist Owen Mercer &middot; Opp $180K</div></div><div class="r"><div class="am" style="background:var(--acid);padding:1px 5px">SFR $260K</div><div class="wh">&Delta; +$80K &middot; over-calling</div></div></div>
+    <div class="ft">Deals that look real on the AE's book but the specialist has already discounted (or vice versa) &mdash; worth a call before they surprise anyone at close.</div>
+  </div>
+</section>
+
+<section class="card tbcard r4" data-key="card18" data-title="Pipe Gen by Product · YoY">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview" data-src="Tableau Next MCP &middot; Sls_Specialist_Reporting SDM &middot; Pipe Gen Amount grouped by APM L1, CY vs. PY" data-tabbenefit="Product family is a governed hierarchy (APM L1/L2) shared across every specialist and pipeline report &mdash; this breakdown matches the product cut used everywhere else in the org, not a locally-defined product list.">i</button>
+    <h2>Pipe gen by product &middot; YoY</h2>
+    <p>CY pipe gen by product &middot; hatched = PY</p>
+  </div>
+  <div class="bd">
+    <div class="mt3">
+      <div class="mtr"><div class="t"><span class="lb">Sales</span><span class="vl tbval">$27.4M</span></div><div class="trk tbtrk"><b class="tbfill" style="width:100%"></b></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Service</span><span class="vl tbval">$8.5M</span></div><div class="trk tbtrk"><b class="tbfill" style="width:31%"></b></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Slack</span><span class="vl tbval">$5.7M</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:21%"></b></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Analytics/Tableau</span><span class="vl tbval">$3.3M</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:12%"></b></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Agentforce/AI&amp;Data</span><span class="vl tbval">$1.4M</span></div><div class="trk tbtrk"><b style="width:5%;background:var(--acid)"></b></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Commerce/Integration</span><span class="vl tbval">$0.9M</span></div><div class="trk tbtrk"><b class="tbfillh" style="width:3%"></b></div></div>
+    </div>
+    <div class="sm">62% of pipe gen classified "Same Quarter" landing</div>
+    <div class="ft">Agentforce/AI &amp; Data is the fastest-growing line year over year (PY $0.4M &rarr; CY $1.4M); Commerce/Integration is essentially flat.</div>
+  </div>
+</section>
+
+<section class="card tbcard r5" data-key="card19" data-title="High-Risk Stale Deals">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview" data-src="Tableau Next MCP &middot; Sls_Specialist_Reporting SDM &middot; Days Since Activity + close-date proximity, SFR MFJ = 'UP -'" data-tabbenefit="Combines days-since-activity with the certified MFJ judgement in one semantic query &mdash; Salesforce alone can show either signal on its own, not the two cross-referenced automatically into a single risk list.">i</button>
+    <h2>High-risk stale deals</h2>
+    <p>Closing soon, gone quiet</p>
+  </div>
+  <div class="bd">
+    <div class="row" style="border-top:none"><div class="l"><div class="nm">Fernwood Analytics</div><div class="mt">19 days since activity &middot; UP&minus; &middot; closes in 5 days</div></div><div class="r"><div class="am" style="background:var(--pink);color:var(--paper);padding:1px 5px">$190K</div><div class="wh">ACT NOW</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Larkspur Dental Group</div><div class="mt">18 days since activity &middot; UP&minus; &middot; closes in 6 days</div></div><div class="r"><div class="am" style="background:var(--pink);color:var(--paper);padding:1px 5px">$275K</div><div class="wh">ACT NOW</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Cobalt Rail Freight</div><div class="mt">16 days since activity &middot; UP&minus; &middot; closes in 9 days</div></div><div class="r"><div class="am tab">$151K</div><div class="wh">THIS WEEK</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Anchor Bay Systems</div><div class="mt">22 days since activity &middot; UP&minus; &middot; closes in 12 days</div></div><div class="r"><div class="am tab">$240K</div><div class="wh">THIS WEEK</div></div></div>
+    <div class="row"><div class="l"><div class="nm">Union Grove Foods</div><div class="mt">15 days since activity &middot; UP&minus; &middot; closes in 13 days</div></div><div class="r"><div class="am tab">$398K</div><div class="wh">WATCH</div></div></div>
+    <div class="ft">These are the deals most likely to slip silently without a call this week &mdash; pairs with Pull Forward above.</div>
+  </div>
+</section>
+
+<section class="card tbcard r6" data-key="card20" data-title="Q4 Pipeline Readiness">
+  <div class="hd">
+    <button class="info" data-fresh="Illustrative preview" data-src="Tableau Next MCP &middot; Sls_Forecasting_Metrics_Expanded SDM &middot; D1OP Attainment by Product" data-tabbenefit="D1OP targets by product are set once in the semantic layer and reused for every quarter's readiness check, so this year's bar is measured against the same yardstick as last year's.">i</button>
+    <h2>Q4 pipeline readiness</h2>
+    <p>% of Day-1 Open Pipe target attained &middot; 80% line = threshold</p>
+  </div>
+  <div class="bd">
+    <div class="mt3">
+      <div class="mtr"><div class="t"><span class="lb">Agentforce/AI&amp;Data</span><span class="vl" style="color:var(--ink);background:var(--acid);padding:1px 4px">105%</span></div><div class="trk"><b style="width:100%;background:var(--acid)"></b><u style="left:80%"></u></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Sales</span><span class="vl" style="color:var(--ink);background:var(--acid);padding:1px 4px">92%</span></div><div class="trk"><b style="width:92%;background:var(--acid)"></b><u style="left:80%"></u></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Slack</span><span class="vl" style="color:var(--ink);background:var(--acid);padding:1px 4px">88%</span></div><div class="trk"><b style="width:88%;background:var(--acid)"></b><u style="left:80%"></u></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Service</span><span class="vl" style="color:var(--paper);background:var(--pink);padding:1px 4px">74%</span></div><div class="trk"><b style="width:74%;background:var(--pink)"></b><u style="left:80%"></u></div></div>
+      <div class="mtr"><div class="t"><span class="lb">Analytics</span><span class="vl" style="color:var(--paper);background:var(--pink);padding:1px 4px">61%</span></div><div class="trk"><b style="width:61%;background:var(--pink)"></b><u style="left:80%"></u></div></div>
+    </div>
+    <div class="ft">Service and Analytics are behind on building the pipe they'll need for Q4; Agentforce is already past its target.</div>
+  </div>
+</section>
+
+<section class="card alert" data-key="card21" data-title="Needs Attention">
+  <div class="ahd">
+    <button class="info" style="border-color:var(--acid);color:var(--acid)" data-fresh="Real: live SOQL this run &middot; Demo: simulated" data-src="Salesforce Org62 &middot; Opportunity + Apttus_Proposal__Proposal__c &middot; 5 triage checks" data-tabbenefit="A semantic-layer version of this triage would let each check cite one certified field-history definition of &quot;pushed&quot; or &quot;stale,&quot; instead of five separately-tuned Salesforce proxy heuristics that could each drift over time.">i</button>
+    <h2>Needs<br>attention</h2>
+    <p>5 ITEMS &middot; TRIAGED BY SEVERITY &middot; Q3 FY27</p>
+  </div>
+  <div class="bd">
+
+    <div class="it">
+      <span class="n">01</span>
+      <div class="b">
+        <span class="sv a">ACT NOW</span>
+        <h3>Past close date, still open</h3>
+        <div class="w">Stage 02&ndash;07, open, with a close date already behind us this quarter. Rep hygiene more than pipeline risk, but it distorts every date-based view run against this data.</div>
+      </div>
+      <div class="r"><div class="am tab sw" data-r="$2.0M" data-d="$1.8M">$1.8M</div><div class="ct sw" data-r="7,647 deals" data-d="6,900 deals">6,900 deals</div></div>
+    </div>
+
+    <div class="it">
+      <span class="n">02</span>
+      <div class="b">
+        <span class="sv b">THIS WEEK</span>
+        <h3>Judged IN from stage 3 or below</h3>
+        <div class="w">Judged committed while still early in the sales process &mdash; a confidence call worth a second look before it's carried at face value.</div>
+      </div>
+      <div class="r"><div class="am tab sw" data-r="$10.6M" data-d="$8.9M">$8.9M</div><div class="ct sw" data-r="165 deals" data-d="132 deals">132 deals</div></div>
+    </div>
+
+    <div class="it">
+      <span class="n">03</span>
+      <div class="b">
+        <span class="sv c">WATCH</span>
+        <h3>Pushed three times or more</h3>
+        <div class="w">Closing this month, but the close date has moved at least three times already. Whatever doesn't land should get re-baselined into September rather than pushed a fourth time.</div>
+      </div>
+      <div class="r"><div class="am tab sw" data-r="$11.1M" data-d="$7.4M">$7.4M</div><div class="ct sw" data-r="182 deals" data-d="119 deals">119 deals</div></div>
+    </div>
+
+    <div class="it">
+      <span class="n">04</span>
+      <div class="b">
+        <span class="sv b">THIS WEEK</span>
+        <h3>Committed with no quote</h3>
+        <div class="w">Judged IN or UP+ with an open/closing Q3 opportunity, but no live Apttus quote on file.</div>
+      </div>
+      <div class="r"><div class="am tab sw" data-r="$4.4M" data-d="$3.1M">$3.1M</div><div class="ct sw" data-r="94 deals" data-d="58 deals">58 deals</div></div>
+    </div>
+
+    <div class="it">
+      <span class="n">05</span>
+      <div class="b">
+        <span class="sv c">WATCH</span>
+        <h3>Jammed in approval</h3>
+        <div class="w">Quote sitting in "Submitted for Approval" with no movement in 2+ days on an opportunity closing this quarter.</div>
+      </div>
+      <div class="r"><div class="am tab sw" data-r="$1.2M" data-d="$0.7M">$0.7M</div><div class="ct sw" data-r="52 deals" data-d="29 deals">29 deals</div></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="closecard r5" data-key="card22" data-title="About This Brief">
+  <div class="hd" style="background:var(--ink)">
+    <button class="info" data-fresh="&mdash;" data-src="Meta &mdash; explains the toggles and color conventions used throughout this brief" data-tabbenefit="Cards marked blue throughout this brief draw on Tableau's governed semantic layer &mdash; the same certified definitions Finance and BI use &mdash; instead of a one-off calculation built just for this report.">i</button>
+    <h2>About this brief</h2>
+    <p>How to read it</p>
+  </div>
+  <div class="bd">
+    <div class="ft" style="border-top:none;padding-top:0;margin-top:0">DEMO shows an instant, fully-populated preview. REAL shows this run's live Salesforce Org62 numbers. <b style="color:var(--tab)">Blue</b> marks figures sourced from Tableau's semantic layer when Show Tableau is on &mdash; no live Tableau connector is active this session, so those figures are illustrative previews of what a connected run would return. Tap the (i) on any card for its exact source and freshness.</div>
+  </div>
+</section>
+
+<footer>
+  Snapshot 04 Aug 2026 20:04 PT &middot; ACV basis (convertCurrency) &mdash; ask Claude to refresh<br>
+  Hillyer &middot; Scime &middot; Lagaly &middot; Crispino &middot; Capetto &mdash; all under SMB - EVP<br>
+  Open pipe = stage 02-07 &middot; closed won = stage 08 by close date
+</footer>
+
+</div>
+<script>
+(function(){try{
+  var body=document.body;
+
+  var CONST={
+    real:{QTD:7034317.88, OPEN:174037789.92, CALL:26720504.28, QFRAC:0.3788},
+    demo:{QTD:23600000,   OPEN:181900000,   CALL:48800000,   QFRAC:0.3788}
+  };
+
+  function money(n){var a=Math.abs(n);
+    if(a>=1e9)return "$"+(n/1e9).toFixed(2)+"B";
+    if(a>=1e6)return "$"+(n/1e6).toFixed(1)+"M";
+    if(a>=1e3)return "$"+Math.round(n/1e3)+"K";
+    return "$"+Math.round(n);}
+
+  function ransom(t){var o="";
+    for(var i=0;i<t.length;i++){var c=t.charAt(i);
+      if(c===" "){o+='<span style="width:9px"></span>';continue;}
+      var iv=(i*7)%3===0, rot=((((i*37+187)%100)/100)-0.5)*6, sz=27+((i*13)%6);
+      o+='<span class="'+(iv?"iv":"")+'" style="font-size:'+sz+'px;transform:rotate('+rot.toFixed(1)+'deg)">'+c+'</span>';}
+    return o;}
+
+  function meter(label,val,txt,good){
+    var w=Math.max(Math.min(val,1.25)/1.25*100,3);
+    var bg=good?"repeating-linear-gradient(45deg,#0B0B0B 0 3px,transparent 3px 6px)":(val>=0.85?"#D8FF00":"#FF1E56");
+    return '<div class="mtr"><div class="t"><span class="lb">'+label+'</span>'+
+      '<span class="vl tab">'+txt+'</span></div>'+
+      '<div class="trk"><b style="width:'+w.toFixed(0)+'%;background:'+bg+'"></b><u></u></div></div>';}
+
+  var inp=document.getElementById("ci"),
+      btn=document.getElementById("cb"),
+      out=document.getElementById("co"),
+      gapEl=document.getElementById("cg");
+
+  function activeConst(){return CONST[body.getAttribute("data-mode")==="real"?"real":"demo"];}
+
+  function go(){
+    if(!inp||!btn||!out)return;
+    var c=activeConst();
+    var raw=String(inp.value).replace(/[^0-9.]/g,"");
+    var v=parseFloat(raw);
+    if(isNaN(v)||v<=0){out.innerHTML="";gapEl.innerHTML="No commit entered yet &mdash; type your Q3 FY27 number above and tap Set.";return;}
+    var commit=v<10000?v*1e6:v;
+    var gap=commit-c.QTD,
+        cov=gap>0?c.OPEN/gap:99,
+        pace=c.QTD/(commit*c.QFRAC),
+        delta=(c.CALL-commit)/commit;
+
+    gapEl.innerHTML=(gap>0? money(gap)+" still to find &middot; landing model, not linear pace"
+                          : "Commit already cleared by "+money(-gap));
+
+    var word=delta>=0.02?"Above commit":(delta<=-0.02?"Below commit":"At commit");
+    var bad=delta<=-0.02;
+
+    var html='<div class="vbox'+(bad?" bad":"")+'">'+
+      '<span class="eb">Tracking</span>'+
+      '<div class="vw" style="margin-top:9px">'+ransom(word)+'</div>'+
+      '<div class="vsub"><b>CALL '+money(c.CALL)+'</b> &middot; '+(delta>=0?"+":"")+Math.round(delta*100)+'% VS COMMIT</div>'+
+      '</div><div style="margin-top:14px">'+
+      meter("Linearity &mdash; booked vs elapsed quarter",pace,pace.toFixed(2)+"x",pace>=0.98)+
+      meter("Coverage &mdash; open pipe vs gap",cov/3,cov>=99?"clear":cov.toFixed(2)+"x",cov>=3)+
+      '</div>';
+    out.innerHTML=html;
+  }
+
+  function resetTester(){
+    if(!inp||!out||!gapEl)return;
+    inp.value="";
+    out.innerHTML="";
+    gapEl.innerHTML="No commit entered yet &mdash; type your Q3 FY27 number above and tap Set.";
+  }
+
+  if(btn)btn.addEventListener("click",go);
+  if(inp)inp.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();inp.blur();go();}});
+
+  function applySwaps(mode){
+    var key = mode==="real" ? "r" : "d";
+    var txt=document.querySelectorAll(".sw");
+    for(var i=0;i<txt.length;i++){
+      var v=txt[i].getAttribute("data-"+key);
+      if(v!==null) txt[i].textContent=v;
+    }
+    var h=document.querySelectorAll(".swh");
+    for(var j=0;j<h.length;j++){
+      var hv=h[j].getAttribute("data-"+key+"h");
+      if(hv) h[j].style.height=hv;
+    }
+    var p=document.querySelectorAll(".swp");
+    for(var k=0;k<p.length;k++){
+      var el=p[k], prop=el.getAttribute("data-prop")||"width";
+      var pv=el.getAttribute("data-"+key+"v");
+      if(pv) el.style[prop]=pv;
+    }
+  }
+
+  function updateModeStatus(m){
+    var el=document.getElementById("modeStatus");
+    if(!el)return;
+    el.innerHTML = m==="real"
+      ? "Showing <b>REAL</b> &mdash; live Org62, 04 Aug 2026 20:04 PT"
+      : "Showing <b>DEMO</b> &mdash; simulated, instant preview";
+  }
+
+  function setMode(m){
+    if(m!=="demo"&&m!=="real")m="demo";
+    body.setAttribute("data-mode",m);
+    try{sessionStorage.setItem("pulseMode",m)}catch(e){}
+    var segBtns=document.querySelectorAll("#modeSeg button");
+    for(var i=0;i<segBtns.length;i++){segBtns[i].classList.toggle("on",segBtns[i].getAttribute("data-v")===m)}
+    applySwaps(m);
+    resetTester();
+    updateModeStatus(m);
+  }
+  function setTableau(on){
+    body.setAttribute("data-tableau",on?"on":"off");
+    try{sessionStorage.setItem("pulseTableau",on?"on":"off")}catch(e){}
+    var b=document.getElementById("tbBtn");
+    if(b)b.classList.toggle("on",on);
+    if(typeof pinnedInfo!=="undefined" && pinnedInfo) showTipFor(pinnedInfo);
+  }
+
+  var initMode="demo", initTb="off";
+  try{
+    var qs=new URLSearchParams(location.search);
+    initMode=qs.get("mode")||sessionStorage.getItem("pulseMode")||"demo";
+    initTb=sessionStorage.getItem("pulseTableau")||"off";
+  }catch(e){}
+
+  setMode(initMode);
+  setTableau(initTb==="on");
+
+  var segBtns2=document.querySelectorAll("#modeSeg button");
+  for(var s=0;s<segBtns2.length;s++){
+    segBtns2[s].addEventListener("click",(function(bt){return function(){setMode(bt.getAttribute("data-v"))}})(segBtns2[s]));
+  }
+  var tbBtn=document.getElementById("tbBtn");
+  if(tbBtn)tbBtn.addEventListener("click",function(){setTableau(body.getAttribute("data-tableau")!=="on")});
+
+  /* ---- metric cards show/hide ---- */
+  var HIDDEN_KEY="pulseHiddenCards";
+  function getHidden(){try{return JSON.parse(localStorage.getItem(HIDDEN_KEY)||"[]")}catch(e){return []}}
+  function setHidden(arr){try{localStorage.setItem(HIDDEN_KEY,JSON.stringify(arr))}catch(e){}}
+  function applyHidden(){
+    var hidden=getHidden();
+    var secs=document.querySelectorAll("[data-key]");
+    for(var i=0;i<secs.length;i++){
+      var k=secs[i].getAttribute("data-key");
+      secs[i].classList.toggle("hidden-card",hidden.indexOf(k)!==-1);
+    }
+  }
+  function openCardModal(){
+    var hidden=getHidden();
+    var list=document.getElementById("cardModalList");
+    if(!list)return;
+    var secs=document.querySelectorAll("[data-key]");
+    var html="";
+    for(var i=0;i<secs.length;i++){
+      var k=secs[i].getAttribute("data-key"), t=secs[i].getAttribute("data-title")||k;
+      var ck=hidden.indexOf(k)===-1?" checked":"";
+      html+='<div class="mrow"><input type="checkbox" id="chk-'+k+'" data-key="'+k+'"'+ck+'><label for="chk-'+k+'">'+t+'</label></div>';
+    }
+    list.innerHTML=html;
+    var ov=document.getElementById("cardModalOverlay");
+    if(ov)ov.classList.add("show");
+  }
+  function closeCardModal(){
+    var ov=document.getElementById("cardModalOverlay");
+    if(ov)ov.classList.remove("show");
+  }
+  var cardsBtn=document.getElementById("cardsBtn");
+  if(cardsBtn)cardsBtn.addEventListener("click",openCardModal);
+  var cardModalCancel=document.getElementById("cardModalCancel");
+  if(cardModalCancel)cardModalCancel.addEventListener("click",closeCardModal);
+  var cardModalOverlay=document.getElementById("cardModalOverlay");
+  if(cardModalOverlay)cardModalOverlay.addEventListener("click",function(e){if(e.target===cardModalOverlay)closeCardModal();});
+  var cardModalOk=document.getElementById("cardModalOk");
+  if(cardModalOk)cardModalOk.addEventListener("click",function(){
+    var boxes=document.querySelectorAll("#cardModalList input[type=checkbox]");
+    var hidden=[];
+    for(var i=0;i<boxes.length;i++){if(!boxes[i].checked)hidden.push(boxes[i].getAttribute("data-key"));}
+    setHidden(hidden);
+    applyHidden();
+    closeCardModal();
+  });
+  applyHidden();
+
+  /* ---- collapsible section headers ---- */
+  var COLLAPSED_KEY="pulseCollapsedCards";
+  function getCollapsed(){try{return JSON.parse(localStorage.getItem(COLLAPSED_KEY)||"[]")}catch(e){return []}}
+  function setCollapsedList(arr){try{localStorage.setItem(COLLAPSED_KEY,JSON.stringify(arr))}catch(e){}}
+  function toggleCollapse(sec){
+    var key=sec.getAttribute("data-key");
+    var arr=getCollapsed();
+    var idx=arr.indexOf(key), collapsed;
+    if(idx===-1){arr.push(key);collapsed=true;}else{arr.splice(idx,1);collapsed=false;}
+    setCollapsedList(arr);
+    sec.classList.toggle("collapsed",collapsed);
+  }
+  (function initCollapsibles(){
+    var collapsedArr=getCollapsed();
+    var secs=document.querySelectorAll("[data-key]");
+    for(var i=0;i<secs.length;i++){
+      (function(sec){
+        var header=sec.querySelector(":scope > .hd, :scope > .ahd");
+        if(!header){
+          var title=sec.getAttribute("data-title")||"";
+          var wrap=document.createElement("div");
+          wrap.className="bd synth-bd";
+          while(sec.firstChild){wrap.appendChild(sec.firstChild);}
+          var hd=document.createElement("div");
+          hd.className="hd synth-hd";
+          hd.innerHTML="<h2>"+title+"</h2>";
+          sec.appendChild(hd);
+          sec.appendChild(wrap);
+          header=hd;
+        }
+        header.classList.add("collapsible-hd");
+        var arrow=document.createElement("span");
+        arrow.className="collapse-arrow";
+        arrow.innerHTML="&#9662;";
+        header.appendChild(arrow);
+        header.addEventListener("click",function(e){
+          if(e.target && e.target.closest && e.target.closest(".info"))return;
+          toggleCollapse(sec);
+        });
+        if(collapsedArr.indexOf(sec.getAttribute("data-key"))!==-1){sec.classList.add("collapsed");}
+      })(secs[i]);
+    }
+  })();
+
+  /* info tooltip */
+  var infoTip=document.getElementById("infoTip");
+  function hideTip(){ if(infoTip)infoTip.classList.remove("show"); }
+  function showTipFor(el){
+    if(!infoTip)return;
+    var fresh=el.getAttribute("data-fresh")||"";
+    var src=el.getAttribute("data-src")||"";
+    var benefit=el.getAttribute("data-tabbenefit")||"";
+    var h="";
+    if(fresh)h+='<div class="sec"><b>Freshness</b>'+fresh+'</div>';
+    if(src)h+='<div class="sec"><b>Source</b>'+src+'</div>';
+    if(benefit && body.getAttribute("data-tableau")==="on"){
+      h+='<div class="sec tab"><b>Why Tableau helps here</b>'+benefit+'</div>';
+    }
+    infoTip.innerHTML=h;
+    infoTip.classList.add("show");
+    var r=el.getBoundingClientRect();
+    var top=r.bottom+7;
+    var left=r.right-230;
+    if(left<8)left=8;
+    if(left+230>window.innerWidth-8)left=window.innerWidth-238;
+    if(top+120>window.innerHeight) top = r.top-7-infoTip.offsetHeight;
+    infoTip.style.top=Math.max(8,top)+"px";
+    infoTip.style.left=left+"px";
+  }
+  var infoBtns=document.querySelectorAll(".info");
+  var pinnedInfo=null;
+  function unpinTip(){ pinnedInfo=null; hideTip(); }
+  for(var ib=0;ib<infoBtns.length;ib++){
+    (function(b){
+      b.addEventListener("click",function(e){
+        e.stopPropagation();
+        e.preventDefault();
+        if(pinnedInfo===b){ unpinTip(); return; }
+        pinnedInfo=b;
+        showTipFor(b);
+      });
+      b.addEventListener("mouseenter",function(){ if(!pinnedInfo) showTipFor(b); });
+      b.addEventListener("mouseleave",function(){ if(!pinnedInfo) hideTip(); });
+    })(infoBtns[ib]);
+  }
+  document.addEventListener("click",function(e){
+    if(pinnedInfo && infoTip && !infoTip.contains(e.target) && e.target!==pinnedInfo){ unpinTip(); }
+  });
+  document.addEventListener("scroll",function(){ if(pinnedInfo) unpinTip(); else hideTip(); },true);
+
+  var cards=document.querySelectorAll(".card,.closecard");
+  for(var ci=0;ci<cards.length;ci++){cards[ci].style.transitionDelay=Math.min(ci*40,320)+"ms";}
+  if("IntersectionObserver" in window){
+    var io=new IntersectionObserver(function(entries){
+      for(var e=0;e<entries.length;e++){
+        var en=entries[e];
+        if(en.isIntersecting && en.intersectionRatio>0.12){
+          en.target.classList.add("in-view");
+          io.unobserve(en.target);
+        }
+      }
+    },{threshold:[0,0.12,0.3,0.5]});
+    for(var cj=0;cj<cards.length;cj++){io.observe(cards[cj]);}
+  } else {
+    for(var ck=0;ck<cards.length;ck++){cards[ck].classList.add("in-view");}
+  }
+}catch(e){try{console.error("Business Pulse script error:",e);}catch(e2){}}})();
+</script>
+</body>
+</html>
