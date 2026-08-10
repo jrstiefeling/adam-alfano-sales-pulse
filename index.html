@@ -124,12 +124,16 @@ a{color:inherit;}
 /* A lone space inside an inline-block collapses to zero width, which would run
    the words together, so the separator spans keep their whitespace. */
 .ransom-text .rsp{display:inline-block; white-space:pre;}
-/* First word of each sentence, inverted. The padding sits on this one wrapper
-   and never on the individual letters, which is what keeps the highlight a
-   single solid block instead of a row of boxed characters with gaps. */
-.ransom-text .rw{
-  display:inline-block; padding:1px 5px; white-space:nowrap;
+/* The one phrase named in the verdict's data-hl, inverted. The band sits on this
+   one wrapper and never on the individual letters, which is what keeps the
+   highlight a single solid block instead of a row of boxed characters with gaps.
+   The wrapper stays inline rather than inline-block so a phrase longer than the
+   line can still wrap on a phone; box-decoration-break re-applies the padding to
+   each fragment so the band closes off cleanly on both lines. */
+.ransom-text .rhl{
+  padding:1px 5px;
   background:var(--ink); color:var(--paper);
+  -webkit-box-decoration-break:clone; box-decoration-break:clone;
 }
 
 /* CARD */
@@ -784,10 +788,13 @@ footer{overflow-wrap:anywhere;}
   <span class="tbnote">All info provided by Tableau MCP shown in <b>blue</b>. Click the (i) icons to understand why Tableau's Semantic Layer and KPIs are preferred over direct salesforce access</span>
 </div>
 
-<!-- VERDICT -->
+<!-- VERDICT — data-hl names the one phrase the ransom-note script inverts: the
+     insight to act on rather than whatever happens to come first. It has to be a
+     verbatim substring of the verdict it sits on; anything else, including a
+     phrase that only exists in the other mode's wording, renders unhighlighted. -->
 <div class="verdict-wrap">
-  <div class="verdict only-real"><span class="v-label">Verdict —</span><span class="ransom-text">Well behind today's target this early in the day and behind this month's Commit pace; full-quarter velocity ($943,323/day) is running only slightly ahead of the 2-year average ($892,917/day) — a much thinner cushion than Friday's snapshot.</span></div>
-  <div class="verdict only-demo"><span class="v-label">Verdict —</span><span class="ransom-text">Simulated demo verdict: this preview's invented pace ($900,000/day) is running behind its invented target, on made-up round numbers. Nothing on this page is real sales data — switch to REAL for the live snapshot.</span></div>
+  <div class="verdict only-real" data-hl="only slightly ahead of the 2-year average"><span class="v-label">Verdict —</span><span class="ransom-text">Well behind today's target this early in the day and behind this month's Commit pace; full-quarter velocity ($943,323/day) is running only slightly ahead of the 2-year average ($892,917/day) — a much thinner cushion than Friday's snapshot.</span></div>
+  <div class="verdict only-demo" data-hl="Nothing on this page is real sales data"><span class="v-label">Verdict —</span><span class="ransom-text">Simulated demo verdict: this preview's invented pace ($900,000/day) is running behind its invented target, on made-up round numbers. Nothing on this page is real sales data — switch to REAL for the live snapshot.</span></div>
 </div>
 
 <!-- TOP ROW: BUSINESS WON (5/8) + AE SPOTLIGHT (3/8) -->
@@ -1356,11 +1363,14 @@ document.querySelectorAll('.filterbar').forEach(function(bar){
 </script>
 <script>
 // RANSOM-NOTE VERDICT — splits the verdict into per-character spans with a small
-// random rotation and size jitter, and inverts the first word of each sentence
-// (cut-and-pasted look). Inverting every third character instead, as this did
-// originally, left the line unreadable. Runs on load so it still works if the
-// verdict text changes on a future refresh — no characters, words or sentence
-// counts are hardcoded here, and both the real and demo verdicts are handled.
+// random rotation and size jitter, and inverts one phrase per verdict for the
+// cut-and-pasted look. Inverting every third character, as this did originally,
+// left the line unreadable; inverting the first word of each sentence was
+// readable but arbitrary, since position says nothing about what matters. The
+// phrase is now authored on the verdict as data-hl, so the one inverted patch is
+// an editorial choice — the risk or the number a reader should act on. Runs on
+// load so it still works if the verdict text changes on a future refresh, and
+// both the real and demo verdicts are handled.
 (function(){
   var els = document.querySelectorAll('.verdict .ransom-text');
   if(!els.length){
@@ -1371,42 +1381,24 @@ document.querySelectorAll('.filterbar').forEach(function(bar){
 
   var ROT_MIN = 0.6, ROT_RANGE = 1.2;  /* 0.6-1.8deg, down from 3-6deg */
   var SIZE_JITTER = 0.04;              /* ±4%, down from ±10% */
-  var CLOSERS = ")]}\u2019\u201d'\"";
 
   for(var e = 0; e < els.length; e++){ ransomize(els[e]); }
 
   function isSpace(ch){ return ch.trim() === ''; }
 
-  /* Returns the index the next sentence starts at, or -1. A period only counts
-     as a boundary when whitespace and then a non-lowercase character follow it,
-     which is what stops "$943,323.50/day" and "e.g. this" from splitting; the
-     single-letter check additionally covers initials such as "U.S." */
-  function sentenceBreak(t, i){
-    var ch = t.charAt(i);
-    if(ch !== '.' && ch !== '!' && ch !== '?') return -1;
-    if(ch === '.'){
-      if(/[0-9]/.test(t.charAt(i - 1)) && /[0-9]/.test(t.charAt(i + 1))) return -1;
-      var k = i - 1, letters = 0;
-      while(k >= 0 && /[A-Za-z]/.test(t.charAt(k))){ letters++; k--; }
-      if(letters === 1 && k >= 0 && t.charAt(k) === '.') return -1;
-    }
-    var j = i + 1;
-    while(j < t.length && CLOSERS.indexOf(t.charAt(j)) !== -1) j++;
-    if(j >= t.length || !isSpace(t.charAt(j))) return -1;
-    while(j < t.length && isSpace(t.charAt(j))) j++;
-    if(j >= t.length || /[a-z]/.test(t.charAt(j))) return -1;
-    return j;
-  }
-
-  function sentenceStarts(t){
-    var out = [], i = 0;
-    while(i < t.length && isSpace(t.charAt(i))) i++;
-    if(i < t.length) out.push(i);
-    for(i = 0; i < t.length; i++){
-      var s = sentenceBreak(t, i);
-      if(s > -1 && out[out.length - 1] !== s) out.push(s);
-    }
-    return out;
+  /* The character range to invert, or null for none. The phrase is matched
+     verbatim and only its first occurrence is taken. A verdict with no data-hl,
+     or one whose text no longer contains the phrase — a figure swapped by a
+     mode change, say — is deliberately rendered with no highlight at all rather
+     than with a guessed one. */
+  function highlight(el, text){
+    var host = el.getAttribute('data-hl') !== null ? el
+             : (el.closest ? el.closest('[data-hl]') : null);
+    var phrase = host && host.getAttribute('data-hl');
+    if(!phrase) return null;
+    var at = text.indexOf(phrase);
+    if(at < 0) return null;
+    return { start: at, end: at + phrase.length };
   }
 
   function make(cls, txt){
@@ -1428,32 +1420,31 @@ document.querySelectorAll('.filterbar').forEach(function(bar){
     try{
       var text = el.textContent;
       if(!text) return;
-      var starts = sentenceStarts(text);
+      var hl = highlight(el, text);
       var frag = document.createDocumentFragment();
-      var i = 0, next = 0;
+      var mark = null;
+      var i = 0;
       while(i < text.length){
-        if(next < starts.length && i === starts[next]){
-          next++;
-          var end = i;
-          while(end < text.length && !isSpace(text.charAt(end))) end++;
-          /* The whole word goes in one wrapper carrying one rotation, so the
-             inverted patch reads as a single block rather than boxed letters. */
-          frag.appendChild(jitter(make('rw', text.slice(i, end))));
-          i = end;
-          continue;
-        }
+        /* Everything inside the range, spaces included, is appended to one
+           wrapper, so the inverted patch reads as a single unbroken band
+           rather than one box per word. */
+        var inside = !!hl && i >= hl.start && i < hl.end;
+        if(inside && !mark){ mark = make('rhl', ''); frag.appendChild(mark); }
+        var host = inside ? mark : frag;
         if(isSpace(text.charAt(i))){
-          frag.appendChild(make('rsp', text.charAt(i)));
+          host.appendChild(make('rsp', text.charAt(i)));
           i++;
           continue;
         }
         /* Characters are grouped per word so a word can never be broken across
-           two lines between two of its own character boxes. */
+           two lines between two of its own character boxes. The group also stops
+           at either edge of the range, in case a phrase starts or ends mid-word. */
+        var limit = !hl ? text.length : (i < hl.start ? hl.start : (inside ? hl.end : text.length));
         var stop = i;
-        while(stop < text.length && !isSpace(text.charAt(stop))) stop++;
+        while(stop < limit && !isSpace(text.charAt(stop))) stop++;
         var grp = make('rgrp', '');
         for(var c = i; c < stop; c++){ grp.appendChild(jitter(make('rch', text.charAt(c)))); }
-        frag.appendChild(grp);
+        host.appendChild(grp);
         i = stop;
       }
       /* Swap the rebuilt line in only once it is complete, so a failure above
