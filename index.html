@@ -402,14 +402,6 @@ details.aitrust .note{
   letter-spacing:1.5px; color:var(--muted); align-self:center;
 }
 #tbBtn.on{background:var(--tab); border-color:var(--tab); color:#fff;}
-.modenote{font-family:var(--font-body); font-size:11px; color:var(--muted); letter-spacing:0.2px;}
-.modenote b{color:var(--ink);}
-.legend{
-  font-family:var(--font-body); font-size:11px; color:var(--muted); line-height:1.65;
-  margin:0 0 20px; padding-bottom:12px; border-bottom:2px dashed var(--ink);
-}
-.legend b{color:var(--ink);}
-.legend .lg-tab{color:var(--tab); font-weight:700;}
 
 /* --- DEMO / REAL BLOCK VISIBILITY --- */
 body[data-mode="demo"] .only-real{display:none !important;}
@@ -613,10 +605,6 @@ footer b{color:var(--ink);}
   </div>
   <button class="filterbtn" type="button" id="tbBtn" aria-pressed="false">Show Tableau</button>
   <button class="filterbtn" type="button" id="cardsBtn">Metric Cards</button>
-  <span class="modenote" id="modeStatus"></span>
-</div>
-<div class="legend">
-  <span class="lg-tab">Blue</span> = figure read straight from the Tableau Next semantic model, toggled with <b>Show Tableau</b> (daily-target-sheet figures, Salesforce SOQL fields and on-page arithmetic stay black) · click the <b>(i)</b> on any card header for its source and freshness · click a card header to collapse it · <b>Metric Cards</b> hides sections you don't need.
 </div>
 
 <!-- VERDICT -->
@@ -1249,14 +1237,6 @@ try{
     }
   }
 
-  function updateModeStatus(m){
-    var el = document.getElementById('modeStatus');
-    if(!el) return;
-    el.innerHTML = m === 'demo'
-      ? 'Showing <b>DEMO</b> — simulated placeholders, not real sales data'
-      : 'Showing <b>REAL</b> — live snapshot, Aug 10 2026, 7:55 AM PT';
-  }
-
   function setMode(m){
     if(m !== 'demo' && m !== 'real') m = 'real';   /* default is REAL, deliberately */
     body.setAttribute('data-mode', m);
@@ -1268,7 +1248,6 @@ try{
       segBtns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
     }
     applySwaps(m);
-    updateModeStatus(m);
     if(pinnedInfo) showTipFor(pinnedInfo);
   }
 
