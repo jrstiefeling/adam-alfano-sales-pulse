@@ -472,19 +472,29 @@ details.aitrust .note{
    button still sits at its top, but the panel then hangs below the whole meta
    line instead of cutting across its last row. */
 .optwrap{position:relative; flex:0 0 auto; align-self:stretch;}
+/* The box stays 44px however small the glyph inside it gets: the target is the
+   button, not the mark, and 44 is the floor this report holds every control to.
+   The glyph is centred in it, so the space around it is padding in all but
+   name.
+   At rest the whole control is deliberately quiet — a hairline in the unused
+   --faint, no drop shadow, and the body's own texture showing through — because
+   the heavy border and hard shadow, not the glyph, were what made it shout. */
 .optbtn{
-  --optbtn-bg:var(--paper);
   width:44px; height:44px; padding:0;
-  border:3px solid var(--ink); background:var(--optbtn-bg); color:var(--ink);
+  border:1px solid var(--faint); background:transparent; color:var(--muted);
   display:inline-flex; align-items:center; justify-content:center;
-  cursor:pointer; box-shadow:3px 3px 0 var(--ink);
+  cursor:pointer;
+  transition:background .15s, color .15s, border-color .15s;
 }
-.optbtn:hover{--optbtn-bg:var(--ink); color:var(--paper);}
-.optbtn[aria-expanded="true"]{--optbtn-bg:var(--ink); color:var(--paper); box-shadow:none; transform:translate(3px,3px);}
+/* It has to state itself the moment it is touched: this is the only way in to
+   the REAL/DEMO switch, the Tableau toggle and Metric Cards, so receding at
+   rest is only safe if hover, keyboard focus and the open state all resolve to
+   full ink. */
+.optbtn:hover,
+.optbtn:focus-visible,
+.optbtn[aria-expanded="true"]{background:var(--ink); border-color:var(--ink); color:var(--paper);}
+.optbtn:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
 .opticon{display:block;}
-/* Knocking the handles out in the button's own background is what separates
-   them from the rules they sit on at 21px; it tracks the hover inversion. */
-.opticon rect{stroke:var(--optbtn-bg); stroke-width:1.4;}
 .optpanel{
   display:none;
   position:absolute; top:calc(100% + 10px); right:0; z-index:96;
@@ -886,15 +896,19 @@ footer{overflow-wrap:anywhere;}
     <div class="optwrap">
       <button class="optbtn" type="button" id="optBtn" aria-expanded="false" aria-controls="optPanel" aria-label="Options">
         <!-- Sliders glyph, squared off to match the report's hard-edged idiom:
-             three rules, each with a handle at a different position along it. -->
-        <svg class="opticon" viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">
-          <g stroke="currentColor" stroke-width="2.6">
-            <path d="M2 6h20M2 12h20M2 18h20"/>
+             three rules, each with a handle at a different position along it.
+             Drawn for 12px: the rules are spread to y=5/12/19 and the handles
+             are solid rather than knocked out in the background, because at
+             half the old size that knockout fell below a pixel and turned the
+             mark to mush. Stroke is set so it lands on ~1.25px rendered. -->
+        <svg class="opticon" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" focusable="false">
+          <g stroke="currentColor" stroke-width="2.5">
+            <path d="M2 5h20M2 12h20M2 19h20"/>
           </g>
           <g fill="currentColor">
-            <rect x="5" y="2.6" width="5.4" height="6.8"/>
-            <rect x="13.6" y="8.6" width="5.4" height="6.8"/>
-            <rect x="8.2" y="14.6" width="5.4" height="6.8"/>
+            <rect x="4" y="1.5" width="5.5" height="7"/>
+            <rect x="14.5" y="8.5" width="5.5" height="7"/>
+            <rect x="8.75" y="15.5" width="5.5" height="7"/>
           </g>
         </svg>
       </button>
