@@ -558,10 +558,10 @@ body[data-mode="demo"] footer{display:none !important;}
    Blue marks a figure read straight from the Tableau Next SDM
    "Sls_Forecasting_Metrics_Expanded." Figures from the supplied daily-target
    sheet, from Salesforce SOQL (Stage / MFJ / Org62 links), or arithmetically
-   derived on this page (gaps, YoY, velocity) are NOT marked. On by default:
-   showing which figures came from the semantic layer is the point of the
-   report, and it was reaching nobody behind a toggle most readers never
-   opened. Every rule below is a no-op once "Why Tableau" is switched off. */
+   derived on this page (gaps, YoY, velocity) are NOT marked. Off by default
+   and deliberately not remembered: every load starts clean, and the tint is a
+   thing the reader turns on to interrogate the report rather than a state the
+   page carries around. Every rule below is a no-op until it is switched on. */
 .tbval{color:var(--ink);}
 body[data-tableau="on"] .tbval{color:var(--tab);}
 /* .spotlight.compact .amount outranks the generic rule above on specificity, so
@@ -851,9 +851,9 @@ footer{overflow-wrap:anywhere;}
 }
 </style>
 </head>
-<!-- data-tableau is authored on, not set by script, so the tint is correct at
-     first paint and survives the script never running at all. -->
-<body data-mode="real" data-tableau="on">
+<!-- data-tableau is authored off and no script raises it on load, so "off" is
+     what the very first paint uses — there is no window in which blue shows. -->
+<body data-mode="real" data-tableau="off">
 <div id="infoTip"></div>
 <div class="wrap">
 
@@ -897,7 +897,7 @@ footer{overflow-wrap:anywhere;}
           </div>
         </div>
         <div class="optrow optrow--btns">
-          <button class="filterbtn on" type="button" id="tbBtn" aria-pressed="true">Why Tableau</button>
+          <button class="filterbtn" type="button" id="tbBtn" aria-pressed="false">Why Tableau</button>
           <button class="filterbtn" type="button" id="cardsBtn">Metric Cards</button>
         </div>
         <span class="tbnote">All info provided by Tableau MCP shown in <b>blue</b>. Click the (i) icons to understand why Tableau's Semantic Layer and KPIs are preferred over direct salesforce access</span>
@@ -1762,14 +1762,11 @@ try{
   }
 
   /* ---------- 2. WHY TABLEAU ---------- */
-  /* Storage records a reader's explicit choice and nothing else, so it is only
-     written from the click handler. The key is versioned because the previous
-     build wrote on every load: a tab opened before this change is still holding
-     an "off" nobody asked for, and reading the old key would keep honouring it. */
-  var TABLEAU_KEY = 'pulseTableauV2';
-  function setTableau(on, persist){
+  /* Deliberately not persisted. The tint lasts as long as the reader is looking
+     at it and no longer: nothing is stored, nothing is read back, and a reload
+     returns to the authored "off" on <body>. */
+  function setTableau(on){
     body.setAttribute('data-tableau', on ? 'on' : 'off');
-    if(persist){ try{ sessionStorage.setItem(TABLEAU_KEY, on ? 'on' : 'off'); }catch(e){} }
     var b = document.getElementById('tbBtn');
     if(b){
       b.classList.toggle('on', on);
@@ -1778,17 +1775,15 @@ try{
     if(pinnedInfo) showTipFor(pinnedInfo);
   }
 
-  var initMode = 'real', initTb = 'on';
+  var initMode = 'real';
   try{
     var qs = window.URLSearchParams ? new URLSearchParams(location.search) : null;
     initMode = (qs && qs.get('mode')) || sessionStorage.getItem('pulseMode') || 'real';
-    /* Defaults on, but a stored "off" is an explicit choice and still wins, so
-       switching the tint off survives a reload for the rest of the session. */
-    initTb = sessionStorage.getItem(TABLEAU_KEY) || 'on';
   }catch(e){}
 
   setMode(initMode);
-  setTableau(initTb === 'on', false);
+  /* No initial setTableau call: <body> already says "off", and re-asserting it
+     here would only risk disagreeing with the markup. */
   /* Swap is done — release the pre-paint hold set in <head>. */
   document.documentElement.removeAttribute('data-premode');
 
@@ -1800,7 +1795,7 @@ try{
   }
   var tbBtn = document.getElementById('tbBtn');
   if(tbBtn) tbBtn.addEventListener('click', function(){
-    setTableau(body.getAttribute('data-tableau') !== 'on', true);
+    setTableau(body.getAttribute('data-tableau') !== 'on');
   });
 
   /* ---------- 3. OPTIONS PANEL ----------
