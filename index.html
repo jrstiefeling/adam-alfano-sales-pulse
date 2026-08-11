@@ -558,8 +558,10 @@ body[data-mode="demo"] footer{display:none !important;}
    Blue marks a figure read straight from the Tableau Next SDM
    "Sls_Forecasting_Metrics_Expanded." Figures from the supplied daily-target
    sheet, from Salesforce SOQL (Stage / MFJ / Org62 links), or arithmetically
-   derived on this page (gaps, YoY, velocity) are NOT marked. Off by default;
-   every rule below is a no-op until "Why Tableau" is on. */
+   derived on this page (gaps, YoY, velocity) are NOT marked. On by default:
+   showing which figures came from the semantic layer is the point of the
+   report, and it was reaching nobody behind a toggle most readers never
+   opened. Every rule below is a no-op once "Why Tableau" is switched off. */
 .tbval{color:var(--ink);}
 body[data-tableau="on"] .tbval{color:var(--tab);}
 /* .spotlight.compact .amount outranks the generic rule above on specificity, so
@@ -849,7 +851,9 @@ footer{overflow-wrap:anywhere;}
 }
 </style>
 </head>
-<body data-mode="real" data-tableau="off">
+<!-- data-tableau is authored on, not set by script, so the tint is correct at
+     first paint and survives the script never running at all. -->
+<body data-mode="real" data-tableau="on">
 <div id="infoTip"></div>
 <div class="wrap">
 
@@ -893,7 +897,7 @@ footer{overflow-wrap:anywhere;}
           </div>
         </div>
         <div class="optrow optrow--btns">
-          <button class="filterbtn" type="button" id="tbBtn" aria-pressed="false">Why Tableau</button>
+          <button class="filterbtn on" type="button" id="tbBtn" aria-pressed="true">Why Tableau</button>
           <button class="filterbtn" type="button" id="cardsBtn">Metric Cards</button>
         </div>
         <span class="tbnote">All info provided by Tableau MCP shown in <b>blue</b>. Click the (i) icons to understand why Tableau's Semantic Layer and KPIs are preferred over direct salesforce access</span>
@@ -1769,11 +1773,13 @@ try{
     if(pinnedInfo) showTipFor(pinnedInfo);
   }
 
-  var initMode = 'real', initTb = 'off';
+  var initMode = 'real', initTb = 'on';
   try{
     var qs = window.URLSearchParams ? new URLSearchParams(location.search) : null;
     initMode = (qs && qs.get('mode')) || sessionStorage.getItem('pulseMode') || 'real';
-    initTb = sessionStorage.getItem('pulseTableau') || 'off';
+    /* Defaults on, but a stored "off" is an explicit choice and still wins, so
+       switching the tint off survives a reload for the rest of the session. */
+    initTb = sessionStorage.getItem('pulseTableau') || 'on';
   }catch(e){}
 
   setMode(initMode);
