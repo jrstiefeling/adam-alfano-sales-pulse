@@ -426,7 +426,14 @@ details.aitrust .note{
     61% 1%, 70% 6%, 79% 0%, 88% 5%, 96% 2%, 100% 6%,
     100% 160%, 0% 160%
   );
-  padding-top:10px;
+  /* The clip is what makes the top edge torn, and it discards everything above
+     the box. The tallest bar is height:100% and each bar's .amt sits 18px above
+     its own top, so that label is only on screen if the padding clears both the
+     18px and the deepest tooth of the polygon (7% of the height). Height grows
+     with the padding so the content box is unchanged: every bar height is a
+     percentage of it and every .velo-tick offset is authored in px against it. */
+  height:174px;
+  padding-top:34px;
 }
 
 /* ============================================================
@@ -752,10 +759,6 @@ footer{overflow-wrap:anywhere;}
   .velo-bar .day{font-size:9px; bottom:-16px;}
   .velo-bar .tgt{font-size:8.5px; bottom:-48px; white-space:normal; line-height:1.2;}
   .velo-tick{left:0; right:0;}
-  /* Content box stays 140px so every inline bar height and every velo-tick
-     bottom offset stays pixel-exact, while the tallest bar's .amt moves inside
-     the torn clip region instead of being painted away above it. */
-  .velo-chart.torn{height:174px; padding-top:34px;}
 
   .race-ready .race{display:block; margin-top:12px;}
   .race-ready .velo-chart--live{display:none;}
