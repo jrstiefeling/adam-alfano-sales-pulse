@@ -29,7 +29,7 @@
   --card-bg:#E1DDD2;
   --pink:#FF1E56;        /* ALARM ONLY — slipped, below commit, critical/risk. Means exactly one thing. */
   --acid:#D8FF00;         /* LIVE ONLY — today's bar / active filter / live selection. Means exactly one thing. */
-  --tab:#2F5FED;          /* TABLEAU PROVENANCE ONLY — figure read straight from the Tableau Next semantic model. */
+  --tab:#2F5FED;          /* TABLEAU — a figure read straight from the Tableau Next semantic model, and the unselected labels of a filter bar. */
   --muted:#4A4844;
   --smear:#4A4844;
   --faint:#8C887E;
@@ -289,6 +289,19 @@ a{color:inherit;}
   justify-content:center;
 }
 .filterbtn.active{background:var(--acid); color:var(--ink); border-color:var(--ink);}
+/* The cuts you are not looking at are labelled in the provenance blue, so a
+   filter bar reads as "this one is live, these are the other Tableau-backed
+   views of the same measure". Unconditional rather than gated on the Why
+   Tableau toggle, which now ships off: gating it would leave these labels
+   black for most readings. Scoped to .filterbar so the .filterbtn class the
+   options panel and the Metric Cards modal also use is left alone. */
+.filterbar .filterbtn:not(.active){color:var(--tab);}
+/* Blue fill on hover, matching #tbBtn.on, so the three states — selected,
+   hovered and at rest — are told apart by fill as well as by colour. */
+.filterbar .filterbtn:not(.active):hover{background:var(--tab); border-color:var(--tab); color:#fff;}
+/* Stated rather than left to the UA so the ring is guaranteed to read against
+   both the paper rest state and the acid selected one. */
+.filterbar .filterbtn:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
 .kpigroup{display:none;}
 .kpigroup.active{display:block;}
 .kpi-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:6px;}
