@@ -710,6 +710,44 @@ html[data-js="on"] .watchlist.in-view{
   }
 }
 
+/* EFFORT AVOIDED — the only modeled block on the page.
+   Gated on the Why Tableau toggle exactly like .tbnote, so it costs nothing in
+   the default view: the tint ships off, so this is display:none until a reader
+   asks for it.
+   Deliberately drawn in none of the three reserved colours. --tab means "read
+   straight from the semantic model", --acid means "live" and --pink means
+   "alarm"; an estimate is none of those, so it gets the greys instead, and a
+   dashed rule rather than the solid ink borders the queried cards use. */
+.effort{
+  display:none;
+  margin-top:40px; border:2px dashed var(--faint); padding:16px 18px;
+  font-family:var(--font-body); font-size:11px; color:var(--muted); line-height:1.7;
+}
+body[data-tableau="on"] .effort{display:block;}
+.effort-head{
+  font-family:var(--font-display); font-size:17px; letter-spacing:1px;
+  text-transform:uppercase; color:var(--ink); line-height:1.2;
+  margin-bottom:10px;
+}
+/* Not .tag.sim, which already means "invented demo row". A modeled estimate is
+   a different kind of not-a-live-figure and needs its own mark. */
+.tag.model{
+  background:var(--paper); color:var(--muted);
+  border:1.5px solid var(--faint); margin-left:0; margin-top:6px;
+}
+.effort-head .tag.model{display:block; width:max-content;}
+.effort b{color:var(--ink);}
+.effort-calc{width:100%; border-collapse:collapse; margin:12px 0 10px;}
+.effort-calc td{padding:5px 0; vertical-align:top; border-top:1px dotted var(--faint);}
+.effort-calc tr:first-child td{border-top:none;}
+.effort-calc td:last-child{
+  text-align:right; white-space:nowrap; padding-left:14px;
+  color:var(--ink); font-weight:700;
+}
+.effort-calc tr.total td{border-top:1.5px solid var(--faint);}
+.effort-calc tr.total td:first-child{color:var(--ink);}
+.effort-foot{border-top:1px dotted var(--faint); padding-top:10px;}
+
 /* FOOTER */
 footer{
   margin-top:40px; border-top:2px dashed var(--ink); padding-top:16px;
@@ -1404,6 +1442,43 @@ footer{overflow-wrap:anywhere;}
       Tableau Next: Open_Pipe_clc where Manager_Forecast_Judgment IN ('UP-','OUT'), User_Name10='Adam Alfano', ranked by open pipe desc, Open_Pipe_clc &gt; 0, phrased explicitly as "across all close dates, do not filter by fiscal quarter or relative year" per the standing correction. Worked cleanly this run (one retry needed after an initial cached/mismatched response — see footer for the query-count note). <b>Watchlist composition unchanged from Friday:</b> Exclusive Networks ($1,579,256.57, up slightly from $1,579,256.57 Friday — effectively flat), HealthOne ($1,370,000.00, unchanged), Laboratoires Théa ($1,222,875.64, unchanged), IAD International ($1,152,997.03, unchanged) — same four accounts, same order, same amounts to the cent in three of four cases, confirming this is a stable UP−/OUT population over the weekend rather than a query error. Org62 links matched by exact Opportunity Id from the Tableau Next pull, cross-checked against SOQL — all 4 matched cleanly.
     </div>
   </details>
+</div>
+
+<!-- EFFORT AVOIDED — the summation of the twelve (i) arguments, and the one
+     modeled block on this page. It sits immediately above the footer on
+     purpose: the footer states this run's call count, so the "16 queries" the
+     model is built on can be checked against its source in the same eyeful. -->
+<div class="effort">
+  <div class="effort-head">Effort avoided<span class="tag model">Modeled — not measured</span></div>
+  <div class="only-real">
+    Counted off this page: <b>16</b> distinct semantic queries — the footer's 21 <span style="font-style:italic;">analyze_data</span> attempts
+    less the 5 retries — covering <b>12</b> sourced surfaces (one per (i) icon) and <b>9</b> certified measures.
+    Built by hand instead, each of those queries is a separate Salesforce report that then has to be made to agree with the other fifteen.
+  </div>
+  <div class="only-demo">
+    Demo mode runs no queries at all, so nothing here was measured on this view. The counts describe the real brief,
+    whose shape does not change between modes: <b>16</b> distinct semantic queries across <b>12</b> sourced surfaces
+    and <b>9</b> certified measures, each of which would be a separate hand-built Salesforce report.
+  </div>
+  <table class="effort-calc">
+    <tr>
+      <td><b>16</b> queries × <b>15 min</b> to scope, build, run and paste one equivalent Salesforce report</td>
+      <td>4 h 00</td>
+    </tr>
+    <tr>
+      <td><b>1</b> pass × <b>60 min</b> to reconcile those 16 reports against each other</td>
+      <td>1 h 00</td>
+    </tr>
+    <tr class="total">
+      <td><b>5 h</b> × <b>$75/h</b> loaded analyst rate</td>
+      <td>$375 per run</td>
+    </tr>
+  </table>
+  <div class="effort-foot">
+    The three figures in bold above — 15 min, 60 min, $75/h — are assumptions, not observations; every other number is counted off this page.
+    At <b>10–20 min</b> per report rather than 15, the same arithmetic gives <b>3 h 40 – 6 h 20</b>, or <b>$275 – $475</b>, per run.
+    The 2 batched Salesforce SOQL calls are <b>not</b> counted as avoided, because this brief still makes them.
+  </div>
 </div>
 
 <footer>
