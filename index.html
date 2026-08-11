@@ -1762,9 +1762,14 @@ try{
   }
 
   /* ---------- 2. WHY TABLEAU ---------- */
-  function setTableau(on){
+  /* Storage records a reader's explicit choice and nothing else, so it is only
+     written from the click handler. The key is versioned because the previous
+     build wrote on every load: a tab opened before this change is still holding
+     an "off" nobody asked for, and reading the old key would keep honouring it. */
+  var TABLEAU_KEY = 'pulseTableauV2';
+  function setTableau(on, persist){
     body.setAttribute('data-tableau', on ? 'on' : 'off');
-    try{ sessionStorage.setItem('pulseTableau', on ? 'on' : 'off'); }catch(e){}
+    if(persist){ try{ sessionStorage.setItem(TABLEAU_KEY, on ? 'on' : 'off'); }catch(e){} }
     var b = document.getElementById('tbBtn');
     if(b){
       b.classList.toggle('on', on);
@@ -1779,11 +1784,11 @@ try{
     initMode = (qs && qs.get('mode')) || sessionStorage.getItem('pulseMode') || 'real';
     /* Defaults on, but a stored "off" is an explicit choice and still wins, so
        switching the tint off survives a reload for the rest of the session. */
-    initTb = sessionStorage.getItem('pulseTableau') || 'on';
+    initTb = sessionStorage.getItem(TABLEAU_KEY) || 'on';
   }catch(e){}
 
   setMode(initMode);
-  setTableau(initTb === 'on');
+  setTableau(initTb === 'on', false);
   /* Swap is done — release the pre-paint hold set in <head>. */
   document.documentElement.removeAttribute('data-premode');
 
@@ -1795,7 +1800,7 @@ try{
   }
   var tbBtn = document.getElementById('tbBtn');
   if(tbBtn) tbBtn.addEventListener('click', function(){
-    setTableau(body.getAttribute('data-tableau') !== 'on');
+    setTableau(body.getAttribute('data-tableau') !== 'on', true);
   });
 
   /* ---------- 3. OPTIONS PANEL ----------
