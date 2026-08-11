@@ -87,12 +87,17 @@ a{color:inherit;}
   padding:3px 9px;
   margin-bottom:8px;
 }
+/* The options trigger rides alongside the meta block rather than under it, so
+   it adds no height to the masthead at any width. flex-start puts it level with
+   the Snapshot line, at the top right of the page. */
+.masthead-side{display:flex; align-items:flex-start; gap:12px;}
 .masthead .meta{
   text-align:right;
   font-family:var(--font-body);
   font-size:12px;
   color:var(--muted);
   line-height:1.6;
+  flex:1 1 auto;
 }
 .masthead .meta b{color:var(--ink);}
 
@@ -443,14 +448,54 @@ details.aitrust .note{
    this report's desktop zine idiom.
    ============================================================ */
 
-/* --- CONTROLS BAR --- */
-/* The dashed rule closes the controls region off from the verdict below it. It
-   sits on the bar itself rather than on the conditional caption, so it cannot
-   come and go as the Tableau toggle is flipped. */
-.controls{
-  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-  margin:0 0 20px; padding-bottom:12px; border-bottom:2px dashed var(--ink);
+/* --- OPTIONS TRIGGER + PANEL --- */
+/* The controls used to be a bar under the masthead, which cost a row of height
+   on every screen to hold three buttons most readings never touch. They now
+   live in a popover hung off the masthead's meta line. The trigger is 44px and
+   the meta beside it is three lines, so the masthead is exactly as tall as it
+   was, and the panel is absolutely positioned so opening it overlays the report
+   rather than reflowing it. */
+/* Stretched to the meta block's height purely as a positioning anchor: the
+   button still sits at its top, but the panel then hangs below the whole meta
+   line instead of cutting across its last row. */
+.optwrap{position:relative; flex:0 0 auto; align-self:stretch;}
+.optbtn{
+  --optbtn-bg:var(--paper);
+  width:44px; height:44px; padding:0;
+  border:3px solid var(--ink); background:var(--optbtn-bg); color:var(--ink);
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:3px 3px 0 var(--ink);
 }
+.optbtn:hover{--optbtn-bg:var(--ink); color:var(--paper);}
+.optbtn[aria-expanded="true"]{--optbtn-bg:var(--ink); color:var(--paper); box-shadow:none; transform:translate(3px,3px);}
+.opticon{display:block;}
+/* Knocking the handles out in the button's own background is what separates
+   them from the rules they sit on at 21px; it tracks the hover inversion. */
+.opticon rect{stroke:var(--optbtn-bg); stroke-width:1.4;}
+.optpanel{
+  display:none;
+  position:absolute; top:calc(100% + 10px); right:0; z-index:96;
+  /* Never wider than the viewport can hold: on a phone the panel goes
+     near-full-width rather than hanging off the right edge. */
+  width:min(340px, calc(100vw - 28px));
+  background:var(--paper); border:3px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+  padding:16px 16px 18px;
+  text-align:left;
+}
+.optpanel.show{display:block; animation:optpanel-in .16s ease-out;}
+@keyframes optpanel-in{
+  from{opacity:0; transform:translateY(-6px);}
+  to{opacity:1; transform:none;}
+}
+@media (prefers-reduced-motion:reduce){ .optpanel.show{animation:none;} }
+.optpanel-title{
+  font-family:var(--font-display); font-size:22px; letter-spacing:1.5px;
+  text-transform:uppercase; margin:0 0 10px; padding-bottom:9px;
+  border-bottom:2px dashed var(--ink);
+}
+.optrow{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+.optrow + .optrow{margin-top:12px;}
+.optrow--btns .filterbtn{flex:1 1 auto;}
 .seg{display:flex; border:3px solid var(--ink); background:var(--paper); flex-shrink:0;}
 .segbtn{
   font-family:var(--font-display);
@@ -487,6 +532,9 @@ details.aitrust .note{
 }
 body[data-tableau="on"] .tbnote{display:block;}
 .tbnote b{color:var(--tab); font-weight:700;}
+/* The rule belongs to the caption, not to the panel, so it comes and goes with
+   the caption instead of leaving a stranded divider when the toggle is off. */
+.optpanel .tbnote{margin-top:14px; padding-top:12px; border-top:2px dashed var(--ink);}
 
 /* --- DEMO / REAL BLOCK VISIBILITY --- */
 /* Paired with the pre-paint guard in <head>: held only until the swap has run,
@@ -810,23 +858,48 @@ footer{overflow-wrap:anywhere;}
     <div class="kicker">President Sales Pulse · Confidential</div>
     <h1>Adam's Business Pulse</h1>
   </div>
-  <div class="meta">
-    Snapshot: <b class="sw" data-r="Monday, August 10, 2026, 7:55 AM PT" data-d="SIMULATED PREVIEW — NO LIVE PULL">Monday, August 10, 2026, 7:55 AM PT</b><br>
-    FQ3 FY2027 · Aug–Oct 2026 · Day 10 of 65<br>
-    Hierarchy: Adam Alfano (Tableau Next rollup)
+  <!-- The meta line and the options trigger share one row, so the trigger costs
+       the masthead no height: it is shorter than the three lines beside it. -->
+  <div class="masthead-side">
+    <div class="meta">
+      Snapshot: <b class="sw" data-r="Monday, August 10, 2026, 7:55 AM PT" data-d="SIMULATED PREVIEW — NO LIVE PULL">Monday, August 10, 2026, 7:55 AM PT</b><br>
+      FQ3 FY2027 · Aug–Oct 2026 · Day 10 of 65<br>
+      Hierarchy: Adam Alfano (Tableau Next rollup)
+    </div>
+    <div class="optwrap">
+      <button class="optbtn" type="button" id="optBtn" aria-expanded="false" aria-controls="optPanel" aria-label="Options">
+        <!-- Sliders glyph, squared off to match the report's hard-edged idiom:
+             three rules, each with a handle at a different position along it. -->
+        <svg class="opticon" viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">
+          <g stroke="currentColor" stroke-width="2.6">
+            <path d="M2 6h20M2 12h20M2 18h20"/>
+          </g>
+          <g fill="currentColor">
+            <rect x="5" y="2.6" width="5.4" height="6.8"/>
+            <rect x="13.6" y="8.6" width="5.4" height="6.8"/>
+            <rect x="8.2" y="14.6" width="5.4" height="6.8"/>
+          </g>
+        </svg>
+      </button>
+      <!-- A disclosure, not a dialog: no backdrop and no focus trap, so it takes
+           no role beyond the aria-expanded/aria-controls pair on the trigger. -->
+      <div class="optpanel" id="optPanel">
+        <h3 class="optpanel-title">Options</h3>
+        <div class="optrow">
+          <span class="seglbl" id="optModeLbl">Figures</span>
+          <div class="seg" id="modeSeg" role="group" aria-labelledby="optModeLbl">
+            <button class="segbtn" type="button" data-v="real">Real</button>
+            <button class="segbtn" type="button" data-v="demo">Demo</button>
+          </div>
+        </div>
+        <div class="optrow optrow--btns">
+          <button class="filterbtn" type="button" id="tbBtn" aria-pressed="false">Why Tableau</button>
+          <button class="filterbtn" type="button" id="cardsBtn">Metric Cards</button>
+        </div>
+        <span class="tbnote">All info provided by Tableau MCP shown in <b>blue</b>. Click the (i) icons to understand why Tableau's Semantic Layer and KPIs are preferred over direct salesforce access</span>
+      </div>
+    </div>
   </div>
-</div>
-
-<!-- CONTROLS -->
-<div class="controls">
-  <span class="seglbl">Figures:</span>
-  <div class="seg" id="modeSeg" role="group" aria-label="Data mode">
-    <button class="segbtn" type="button" data-v="real">Real</button>
-    <button class="segbtn" type="button" data-v="demo">Demo</button>
-  </div>
-  <button class="filterbtn" type="button" id="tbBtn" aria-pressed="false">Why Tableau</button>
-  <button class="filterbtn" type="button" id="cardsBtn">Metric Cards</button>
-  <span class="tbnote">All info provided by Tableau MCP shown in <b>blue</b>. Click the (i) icons to understand why Tableau's Semantic Layer and KPIs are preferred over direct salesforce access</span>
 </div>
 
 <!-- VERDICT — data-hl names the one phrase the ransom-note script inverts: the
@@ -1633,7 +1706,8 @@ document.querySelectorAll('.filterbar').forEach(function(bar){
    PORTED UI FEATURES — ported from reference/pulse-zine-v16.html:
      1. DEMO / REAL figure toggle      4. Metric Cards visibility modal
      2. "Why Tableau" provenance tint  5. Collapsible card headers
-     3. Per-card info tooltips         6. Scroll-in card animation
+     3. Options popover holding both   6. Per-card info tooltips
+        of the above                   7. Scroll-in card animation
    Plain ES5, no dependencies, every lookup guarded, whole thing in a try/catch
    so a failure here can never take the report down with it.
    ============================================================================ */
@@ -1718,6 +1792,45 @@ try{
     setTableau(body.getAttribute('data-tableau') !== 'on');
   });
 
+  /* ---------- 3. OPTIONS PANEL ----------
+     A non-modal popover holding the three controls. It is deliberately not a
+     dialog with a backdrop: it overlays the report and dismisses on Escape, on
+     a click outside and on a second press of the trigger, and it never traps
+     the page. Focus moves into it on open and back to the trigger on close, so
+     the controls stay reachable without a pointer. */
+  var optBtn = document.getElementById('optBtn');
+  var optPanel = document.getElementById('optPanel');
+  function optionsOpen(){ return !!optPanel && optPanel.classList.contains('show'); }
+  function openOptions(){
+    if(!optBtn || !optPanel) return;
+    optPanel.classList.add('show');
+    optBtn.setAttribute('aria-expanded', 'true');
+    var first = optPanel.querySelector('button, input, select, textarea, [href]');
+    if(first) first.focus();
+  }
+  function closeOptions(refocus){
+    if(!optBtn || !optPanel || !optionsOpen()) return;
+    optPanel.classList.remove('show');
+    optBtn.setAttribute('aria-expanded', 'false');
+    if(refocus) optBtn.focus();
+  }
+  if(optBtn){
+    /* No stopPropagation: the outside-click handler below already ignores the
+       trigger, and letting the click through keeps a pinned tooltip dismissing
+       the way it does for every other click on the page. */
+    optBtn.addEventListener('click', function(){
+      if(optionsOpen()) closeOptions(true); else openOptions();
+    });
+    document.addEventListener('click', function(e){
+      if(!optionsOpen()) return;
+      if(optPanel.contains(e.target) || optBtn.contains(e.target)) return;
+      closeOptions(false);
+    });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' || e.key === 'Esc') closeOptions(true);
+    });
+  }
+
   /* ---------- 4. METRIC CARDS SHOW / HIDE ---------- */
   var HIDDEN_KEY = 'pulseHiddenCards';
   function getHidden(){ try{ return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]'); }catch(e){ return []; } }
@@ -1745,14 +1858,26 @@ try{
     }
     list.innerHTML = html;
     var ov = document.getElementById('cardModalOverlay');
-    if(ov) ov.classList.add('show');
+    if(!ov) return;
+    ov.classList.add('show');
+    /* The button that opened this sits in the popover, which has just closed,
+       so focus has to be handed to the modal or it falls back to the document. */
+    var f = ov.querySelector('input, button');
+    if(f) f.focus();
   }
   function closeCardModal(){
     var ov = document.getElementById('cardModalOverlay');
-    if(ov) ov.classList.remove('show');
+    if(!ov || !ov.classList.contains('show')) return;
+    ov.classList.remove('show');
+    if(optBtn) optBtn.focus();
   }
   var cardsBtn = document.getElementById('cardsBtn');
-  if(cardsBtn) cardsBtn.addEventListener('click', openCardModal);
+  if(cardsBtn) cardsBtn.addEventListener('click', function(){
+    /* Two stacked dismissable layers would make Escape ambiguous, so the
+       popover gives way to the modal rather than sitting behind it. */
+    closeOptions(false);
+    openCardModal();
+  });
   var cancelBtn = document.getElementById('cardModalCancel');
   if(cancelBtn) cancelBtn.addEventListener('click', closeCardModal);
   var overlay = document.getElementById('cardModalOverlay');
@@ -1834,7 +1959,7 @@ try{
     }
   })();
 
-  /* ---------- 3. INFO TOOLTIPS ---------- */
+  /* ---------- 6. INFO TOOLTIPS ---------- */
   function hideTip(){ if(infoTip) infoTip.classList.remove('show'); }
   function showTipFor(el){
     if(!infoTip || !el) return;
@@ -1887,7 +2012,7 @@ try{
     if(pinnedInfo){ unpinTip(); } else { hideTip(); }
   }, true);
 
-  /* ---------- 6. SCROLL-IN ANIMATION ---------- */
+  /* ---------- 7. SCROLL-IN ANIMATION ---------- */
   /* translateY is composed with each card's own --rot rotation in CSS, so cards
      keep their collage tilt while animating in. */
   var cards = document.querySelectorAll('.card, .spotlight, .watchlist');
