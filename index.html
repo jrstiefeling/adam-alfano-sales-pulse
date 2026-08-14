@@ -544,40 +544,6 @@ details.aitrust .note{
   letter-spacing:1.5px; color:var(--muted); align-self:center;
 }
 #tbBtn.on{background:var(--tab); border-color:var(--tab); color:#fff;}
-
-/* REFRESH + AGE OF FIGURES
-   A peer of the panel's other controls — same 2px ink border, same 44px floor —
-   but square, because it carries a glyph rather than a word. It is not part of
-   the Why Tableau feature and is never gated on the tint. */
-.optrow--fresh{
-  margin-top:14px; padding-top:12px; border-top:2px dashed var(--ink);
-  align-items:flex-start; gap:12px; flex-wrap:nowrap;
-}
-.refreshbtn{
-  flex:0 0 auto;
-  width:44px; height:44px; padding:0;
-  border:2px solid var(--ink); background:var(--paper); color:var(--ink);
-  display:inline-flex; align-items:center; justify-content:center;
-  cursor:pointer;
-  transition:background .15s, color .15s;
-}
-.refreshbtn:hover{background:var(--ink); color:var(--paper);}
-.refreshbtn:focus-visible{outline:3px solid var(--ink); outline-offset:2px;}
-.refreshbtn[disabled]{cursor:default;}
-.refreshicon{display:block;}
-/* One turn while the check is in flight. Purely a wait indicator: it says
-   nothing about where the figures come from. */
-.refreshbtn.spin .refreshicon{animation:refresh-spin .7s linear infinite;}
-@keyframes refresh-spin{ to{ transform:rotate(360deg); } }
-@media (prefers-reduced-motion:reduce){ .refreshbtn.spin .refreshicon{animation:none;} }
-.freshwrap{
-  flex:1 1 auto; min-width:0;
-  font-family:var(--font-body); font-size:11px; line-height:1.5;
-  color:var(--smear); overflow-wrap:break-word;
-}
-/* The age of the figures, which is the one thing here a reader might act on. */
-.freshage{display:block; color:var(--ink); font-weight:700;}
-.freshnote{display:block; margin-top:3px; color:var(--muted);}
 /* Caption for the Tableau toggle. Gated on the same data-tableau attribute
    setTableau() already writes, so it cannot desync from the tint, and it is
    absent rather than merely invisible until that attribute reads "on" — which
@@ -961,12 +927,7 @@ footer{overflow-wrap:anywhere;}
        the masthead no height: it is shorter than the three lines beside it. -->
   <div class="masthead-side">
     <div class="meta">
-      <!-- data-snapshot-iso is the same instant as the text beside it, written
-           so the age line in the options panel can be computed rather than
-           hardcoded a second time and left to drift. PT in August is PDT, so
-           the offset is -07:00. Attribute only: it renders nothing, and
-           applySwaps() writes textContent, so the swap cannot disturb it. -->
-      Snapshot: <b class="sw" data-snapshot-iso="2026-08-10T07:55:00-07:00" data-r="Monday, August 10, 2026, 7:55 AM PT" data-d="SIMULATED PREVIEW — NO LIVE PULL">Monday, August 10, 2026, 7:55 AM PT</b><br>
+      Snapshot: <b class="sw" data-r="Monday, August 10, 2026, 7:55 AM PT" data-d="SIMULATED PREVIEW — NO LIVE PULL">Monday, August 10, 2026, 7:55 AM PT</b><br>
       FQ3 FY2027 · Aug–Oct 2026 · Day 10 of 65<br>
       Hierarchy: Adam Alfano (Tableau Next rollup)
     </div>
@@ -1005,29 +966,6 @@ footer{overflow-wrap:anywhere;}
           <button class="filterbtn" type="button" id="cardsBtn">Metric Cards</button>
         </div>
         <span class="tbnote">All info provided by Tableau MCP shown in <b>blue</b>. Click the (i) icons to understand why Tableau's Semantic Layer and KPIs are preferred over direct salesforce access</span>
-        <!-- Refresh is not part of Why Tableau and is never gated on the tint.
-             It reloads the published file; it cannot query anything. The label,
-             the note and the feedback text are all written to say only that. -->
-        <div class="optrow optrow--fresh">
-          <button class="refreshbtn" type="button" id="refreshBtn"
-                  aria-label="Check for a newer published brief"
-                  title="Check for a newer published brief">
-            <!-- Circular arrow, drawn open at the top-right with a solid
-                 triangular head so it stays hard-edged at 16px rather than
-                 tapering the way a stroked arrowhead would. -->
-            <svg class="refreshicon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
-              <path d="M12 4.5A7.5 7.5 0 1 0 19.05 9.43" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/>
-              <polygon points="11.2,1.6 11.2,7.4 16.4,4.5" fill="currentColor"/>
-            </svg>
-          </button>
-          <span class="freshwrap">
-            <!-- Filled by script from data-snapshot-iso; left empty in the
-                 markup so a scripting failure shows nothing rather than a stale
-                 age that would be a false claim. -->
-            <span class="freshage" id="freshAge" aria-live="polite"></span>
-            <span class="freshnote">Refresh picks up the newest published brief. The figures themselves change only when the brief is re-queried and republished.</span>
-          </span>
-        </div>
       </div>
     </div>
   </div>
@@ -1922,9 +1860,6 @@ try{
       segBtns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
     }
     applySwaps(m);
-    /* Hoisted; during the init call below the panel vars are not assigned yet,
-       so it no-ops there and the first real paint happens in section 3b. */
-    paintAge();
     if(pinnedInfo) showTipFor(pinnedInfo);
   }
 
@@ -2001,95 +1936,6 @@ try{
     });
     document.addEventListener('keydown', function(e){
       if(e.key === 'Escape' || e.key === 'Esc') closeOptions(true);
-    });
-  }
-
-  /* ---------- 3b. REFRESH + AGE OF FIGURES ----------
-     This button cannot query Tableau, and nothing it says pretends otherwise.
-     The page is a static file with no backend and no credentials, and MCP is
-     an agent-side tool interface rather than a public endpoint, so the only
-     honest action available is to fetch the newest published copy of this same
-     file. New figures reach the reader out of band: the brief is re-queried
-     through MCP, the figures are rewritten, and the file is republished. */
-  var refreshBtn = document.getElementById('refreshBtn');
-  var freshAge   = document.getElementById('freshAge');
-  var snapEl     = document.querySelector('.sw[data-snapshot-iso]');
-  var snapISO    = snapEl ? snapEl.getAttribute('data-snapshot-iso') : '';
-
-  function ageText(){
-    /* No pull was made for the demo view, so a day count would be a fiction.
-       Says the same thing the demo footer already says. */
-    if(body.getAttribute('data-mode') === 'demo') return 'Demo figures are simulated — no query was run.';
-    if(!snapISO) return '';
-    var t = new Date(snapISO).getTime();
-    if(isNaN(t)) return '';
-    var mins = Math.floor((Date.now() - t) / 60000);
-    if(mins < 0) mins = 0;                       /* clock skew, or a snapshot dated ahead */
-    if(mins < 60) return 'Figures are less than an hour old.';
-    var hrs = Math.floor(mins / 60);
-    if(hrs < 24) return 'Figures are ' + hrs + (hrs === 1 ? ' hour old.' : ' hours old.');
-    var days = Math.floor(hrs / 24);
-    return 'Figures are ' + days + (days === 1 ? ' day old.' : ' days old.');
-  }
-  function paintAge(){ if(freshAge) freshAge.textContent = ageText(); }
-  paintAge();
-
-  function reloadFresh(){
-    /* Cache-buster on its own key, set rather than appended so repeat presses
-       cannot grow the URL, and written into the existing query string so a
-       ?mode= override survives the reload. replace() keeps the back button
-       pointing where the reader came from. */
-    try{
-      if(window.URL && window.URLSearchParams){
-        var u = new URL(location.href);
-        u.searchParams.set('rev', String(Date.now()));
-        location.replace(u.toString());
-        return;
-      }
-    }catch(e){}
-    location.reload();
-  }
-
-  if(refreshBtn){
-    refreshBtn.addEventListener('click', function(){
-      if(refreshBtn.disabled) return;
-
-      /* Without fetch, or on file://, there is nothing to compare against, so
-         just do what the button promises. */
-      if(!window.fetch || !snapISO || location.protocol === 'file:'){ reloadFresh(); return; }
-
-      refreshBtn.disabled = true;
-      refreshBtn.classList.add('spin');
-      var settled = false;
-      var finish = function(fn){
-        if(settled) return; settled = true;
-        clearTimeout(timer);
-        refreshBtn.disabled = false;
-        refreshBtn.classList.remove('spin');
-        fn();
-      };
-      /* A hung request must not leave the reader with a spinning glyph and no
-         outcome; fall back to the plain reload the button promised. */
-      var timer = setTimeout(function(){ finish(reloadFresh); }, 4000);
-
-      fetch(location.href, { cache: 'no-store' })
-        .then(function(r){ return r.ok ? r.text() : Promise.reject(new Error('http')); })
-        .then(function(html){
-          var m = html.match(/data-snapshot-iso="([^"]+)"/);
-          /* Same snapshot means nothing has been republished since this view
-             was loaded, so reloading would only cost the reader their place. */
-          if(m && m[1] === snapISO){
-            finish(function(){
-              if(freshAge){
-                freshAge.textContent = 'Already the newest published brief.';
-                setTimeout(paintAge, 2800);
-              }
-            });
-          } else {
-            finish(reloadFresh);
-          }
-        })
-        .catch(function(){ finish(reloadFresh); });
     });
   }
 
